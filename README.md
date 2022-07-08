@@ -1,3 +1,5 @@
+# Bionic Text
+
 Display all texts on your current Roam page in a similar way as '[Bionic Reading](https://bionic-reading.com)': put in bold the first part of words, allegedly for **faster, more focused reading and better memorization**
 
 ![image](https://user-images.githubusercontent.com/74436347/178007300-263361a9-d901-4c59-b2c5-bd9a42c2aa36.png)
