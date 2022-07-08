@@ -13,17 +13,12 @@ This extension makes changes only on the HTML level (current page display), not 
   
   ⚠️ __this page should be automatically created. If not, delete the existant one and refresh your graph. Otherwise, follow the format below (value are set in child block ):__
   
-      - **fixation** (percentage of word in bold)
-          
-          - from 0 to 100
-      
-      - **saccade** (applies every x words)
-          
-          - from 1 to 5
-      
-      - **button** (appears or not in the topbar)
-          
-          - yes or no
+      - **fixation** (percentage of word in bold, from 0 to 100)          
+          - from 0 to 100      
+      - **saccade** (applies every x words, from 1 to 5)          
+          - 1
+      - **button** (appears or not in the topbar, yes or no)          
+          - yes
 
 ### Limitations
 - Auto-reapply is not working properly when navigating with keyboard
