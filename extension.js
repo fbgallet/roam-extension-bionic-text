@@ -2,25 +2,24 @@
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
     
-    Version: 0.52, Juny 4, 2022
+    Version: 0.53, Juny 4, 2022
     By: Fabrice Gallet (Twitter: @fbgallet)
         Support my work on:
             https://www.buymeacoffee.com/fbgallet
 ************************************************************/
+var fixation = '50';
+var saccade = '1';
+var buttonInTopBar = 'yes';
+
+const version = "v0.53";
+var fixNum, sacNum;
+var isOn = false;
+var lastTextarea, lastElt = null;
+var isNewView = true;
+
 export default {
   onload: () => {
-    var fixation = '50';
-    var saccade = '1';
-    var buttonInTopBar = 'yes';
-
-    var version = "v0.52";
-    var fixNum, sacNum;
-    var isOn = false;
-    var lastTextarea, lastElt = null;
-    var isNewView = true;
-    
     let tree = getTreeByPageTitle('roam/js/bionic text');
-    
     if (tree.length==0) createSettingsPage();
     else getSettings(tree);
 
@@ -29,12 +28,11 @@ export default {
     console.log("Bionic text extension loaded.");
   },
   onunload: () => {
-    console.log("Bionic text extension unloaded.");
     document.removeEventListener('keydown', keyboardToggle);
     window.removeEventListener('popstate',autoToggleWhenBrowsing);
-    elt.forEach(item => {
-      item.removeEventListener('focusin', onFocusIn);
-    });
+    if (buttonInTopBar=='yes') buttonToggle();
+    removeBionicNodes();
+    console.log("Bionic text extension unloaded.");
   }
 };
 
