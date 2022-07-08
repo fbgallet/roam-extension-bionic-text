@@ -7,28 +7,39 @@
         Support my work on:
             https://www.buymeacoffee.com/fbgallet
 ************************************************************/
-(()=>{
-//Default Settings
-//User settings can be set on [[roam/js/bionic text]] page
-var fixation = '50';
-var saccade = '1';
-var buttonInTopBar = 'yes';
+export default {
+  onload: () => {
+    var fixation = '50';
+    var saccade = '1';
+    var buttonInTopBar = 'yes';
 
-var version = "v0.52";
-var fixNum, sacNum;
-var isOn = false;
-var lastTextarea, lastElt = null;
-var isNewView = true;
+    var version = "v0.52";
+    var fixNum, sacNum;
+    var isOn = false;
+    var lastTextarea, lastElt = null;
+    var isNewView = true;
+    
+    let tree = getTreeByPageTitle('roam/js/bionic text');
+    
+    if (tree.length==0) createSettingsPage();
+    else getSettings(tree);
 
-let tree = getTreeByPageTitle('roam/js/bionic text');
-if (tree.length==0) createSettingsPage();
-else getSettings(tree);
-  
-document.addEventListener('keydown', keyboardToggle);
-if (buttonInTopBar=='yes') buttonToggle();
-  
+    document.addEventListener('keydown', keyboardToggle);
+    if (buttonInTopBar=='yes') buttonToggle();
+    console.log("Bionic text extension loaded.");
+  },
+  onunload: () => {
+    console.log("Bionic text extension unloaded.");
+    document.removeEventListener('keydown', keyboardToggle);
+    window.removeEventListener('popstate',autoToggleWhenBrowsing);
+    elt.forEach(item => {
+      item.removeEventListener('focusin', onFocusIn);
+    });
+  }
+};
+
 function keyboardToggle(e) {
-    if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();
+  if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();
 }
 
 function buttonToggle() {
@@ -59,6 +70,10 @@ function buttonToggle() {
         mainButton.insertAdjacentElement("afterend", flexDiv),
         mainButton.addEventListener("click", BionicMode);
      console.log("Bionic text button added");
+  }
+  else {
+    checkForButton.remove();
+    console.log("Bionic text button removed");
   }
 }
 
@@ -322,4 +337,3 @@ function getSettings(settingsArray) {
     console.log('Bionic text settings loaded.');
   }
 }
-})();
