@@ -1,0 +1,3 @@
+- v0.6 (2022-07-11)
+  - Settings are now in native Roam extension panel
+  - Added "Toggle Bionic Text extension" command to Command Palette
