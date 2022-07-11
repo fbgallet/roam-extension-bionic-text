@@ -7,20 +7,16 @@ Display all texts on your current Roam page in a similar way as '[Bionic Reading
 This extension makes changes only on the HTML level (current page display), not on your data!
 
 ### Instructions
-- Toggle it with **Shift+Alt+B** or 'B' button in the top bar
-    - Button is enabled by default.
-    - You can disable it in user settings on [[roam/js/bionic text]] page.
+- Toggle it with **Shift + Alt +B** or 'B' button in the top bar, or "Toggle Bionic Text extension" in Command Palette (Ctrl + P)
 
-- You can change **user settings** on [[roam/js/bionic text]] __(refresh your graph to apply change)__:
-  
-  ⚠️ __this page should be automatically created. If not, delete the existant one and refresh your graph. Otherwise, follow the format below (value are set in child block ):__
-  
-      - **fixation** (percentage of word in bold, from 0 to 100)          
-          - from 0 to 100      
-      - **saccade** (applies every x words, from 1 to 5)          
-          - 1
-      - **button** (appears or not in the topbar, yes or no)          
-          - yes
+- You can change **user settings** in native Extensions settings panel ('...' > 'Settings'):
+
+  - **fixation** (percentage of word in bold, from 0 to 100)          
+      - default: 50
+  - **saccade** (applies every x words, from 1 to 5)          
+      - default: 1
+  - **button** (appears or not in the topbar, yes or no)          
+      - default: true
 
 ### Limitations
 - Auto-reapply is not working properly when navigating with keyboard
