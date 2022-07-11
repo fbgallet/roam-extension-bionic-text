@@ -7,31 +7,75 @@
         Support my work on:
             https://www.buymeacoffee.com/fbgallet
 ************************************************************/
-var fixation = '50';
-var saccade = '1';
-var buttonInTopBar = 'yes';
+var fixation, saccade, buttonInTopBar;
 
-const version = "v0.53";
+const version = "v0.6";
 var fixNum, sacNum;
 var isOn = false;
 var lastTextarea, lastElt = null;
 var isNewView = true;
 
+const panelConfig = {
+  tabTitle: "Bionic Text",
+  settings: [
+      {id:     "fixation-setting",
+      name:   "Fixation",
+      description: "Set fixation (percetage of word in bold, from 0 to 100):",
+      action: {type:        "input",
+              placeholder: "50",
+              onChange:    (evt) => { 
+                fixation = evt.target.value;
+                console.log("Fixation changed to", fixation); }}},
+      {id:     "saccade-setting",
+       name:   "Saccade",
+       description: "Set saccade (applies every n words, from 1 to 5):",
+       action: {type:     "select",
+                items:    ["1", "2", "3", "4", "5"],
+                onChange: (evt) => { 
+                  saccade = evt;
+                  console.log("Select Changed!", evt); }}},
+      {id:          "button-setting",
+      name:        "Button",
+      description: "Display Button 'B' in the top bar or not:",
+      action:      {type:     "switch",
+                    onChange: (evt) => { 
+                      console.log(evt);
+                      buttonToggle();
+                    }}}
+  ]
+}; 
+
 export default {
-  onload: () => {
-    let tree = getTreeByPageTitle('roam/js/bionic text');
-    if (tree.length==0) createSettingsPage();
-    else getSettings(tree);
+  onload: ({extensionAPI}) => {
+    extensionAPI.settings.panel.create(panelConfig);
+    if (extensionAPI.settings.get("fixation-setting") == null)
+    fixation = 50;
+    else fixation = extensionAPI.settings.get("fixation-setting");
+    if (extensionAPI.settings.get("saccade-setting") == null)
+    saccade = 1;
+    else saccade = extensionAPI.settings.get("saccade-setting");
+    if (extensionAPI.settings.get("button-setting") == null) {
+      extensionAPI.settings.set("button-setting", true);
+      buttonInTopBar = true;
+    }
+    else buttonInTopBar = extensionAPI.settings.get("button-setting");
 
     document.addEventListener('keydown', keyboardToggle);
-    if (buttonInTopBar=='yes') buttonToggle();
+    if (buttonInTopBar) buttonToggle();
+    window.roamAlphaAPI.ui
+          .commandPalette
+          .addCommand({label: 'Toggle Bionic Text extension', 
+               callback: BionicMode});
     console.log("Bionic text extension loaded.");
   },
   onunload: () => {
     document.removeEventListener('keydown', keyboardToggle);
     window.removeEventListener('popstate',autoToggleWhenBrowsing);
-    if (buttonInTopBar=='yes') buttonToggle();
+    if (buttonInTopBar) buttonToggle();
     removeBionicNodes();
+    window.roamAlphaAPI.ui
+          .commandPalette
+          .removeCommand({label: 'Toggle Bionic Text extension'});
     console.log("Bionic text extension unloaded.");
   }
 };
@@ -261,77 +305,3 @@ function removeBionicNodes(e = document) {
       bionicElt[i].replaceWith(eTxt);
     }
   }
-  
-function getTreeByPageTitle(pageTitle) {
-return window.roamAlphaAPI.q(
-  `[:find ?uid ?s 
-    :where [?b :node/title "${pageTitle}"]
-           [?b :block/children ?cuid]
-           [?cuid :block/uid ?uid]
-           [?cuid :block/string ?s]]`);
-}
-
-function getFirstChild(uid) {
-  let q = `[:find ?uid ?s 
-            :where [?b :block/uid "${uid}"]
-                   [?b :block/children ?cuid]
-                   [?cuid :block/uid ?uid]
-                   [?cuid :block/string ?s]]`;
-  return window.roamAlphaAPI.q(q)[0];
-}
-
-function createSettingsPage() {
-  let pageUid = window.roamAlphaAPI.util.generateUID();
-  window.roamAlphaAPI.createPage(
-        {"page": {"title": 'roam/js/bionic text',
-                  "uid": pageUid}});
-  
-  let fixationUid = window.roamAlphaAPI.util.generateUID();
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": pageUid, "order": 0},
-         "block": {"string": "fixation (in percent)", "uid": fixationUid}});
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": fixationUid, "order": 0},
-         "block": {"string": fixation}});
-  
-  let saccadeUid = window.roamAlphaAPI.util.generateUID();
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": pageUid, "order": 1},
-         "block": {"string": "saccade (every x words)", "uid": saccadeUid}});
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": saccadeUid, "order": 0},
-         "block": {"string": saccade}});
-
-  let buttonUid = window.roamAlphaAPI.util.generateUID();
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": pageUid, "order": 2},
-         "block": {"string": "button (yes or no)", "uid": buttonUid}});
-  window.roamAlphaAPI.createBlock(
-        {"location": {"parent-uid": buttonUid, "order": 0},
-         "block": {"string": buttonInTopBar}});
-  console.log('Bionic text settings page created: [[roam/js/bionic text]].');
-}
-
-function getSettings(settingsArray) {
-  for(let i=0;i<settingsArray.length;i++) {
-    let str = settingsArray[i][1].split(' ')[0].toLowerCase();
-    let blockUid = settingsArray[i][0];
-    switch (str) {
-      case 'fixation':
-        let fixSetting = getFirstChild(blockUid)[1];
-        if (fixSetting != null) fixation = fixSetting;
-        break;
-      case 'saccade':
-        let sacSetting = getFirstChild(blockUid)[1];
-        if (sacSetting != null) saccade = sacSetting;
-        break;
-      case 'button':
-        let butSetting = getFirstChild(blockUid)[1];
-        if (butSetting != null) buttonInTopBar = butSetting;
-        break;
-      default:
-        if (str!=null) console.log(str + ' is not a Bionic text setting');
-    }
-    console.log('Bionic text settings loaded.');
-  }
-}
