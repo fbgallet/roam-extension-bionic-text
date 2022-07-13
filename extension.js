@@ -2,14 +2,14 @@
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
     
-    Version: 0.53, Juny 4, 2022
+    Version: 0.62, Juny 13, 2022
     By: Fabrice Gallet (Twitter: @fbgallet)
         Support my work on:
             https://www.buymeacoffee.com/fbgallet
 ************************************************************/
 var fixation, saccade, buttonInTopBar;
 
-const version = "v0.6";
+const version = "v0.62";
 var fixNum, sacNum;
 var isOn = false;
 var lastTextarea, lastElt = null;
@@ -39,7 +39,6 @@ const panelConfig = {
       description: "Display Button 'B' in the top bar or not:",
       action:      {type:     "switch",
                     onChange: (evt) => { 
-                      console.log(evt);
                       buttonToggle();
                     }}}
   ]
@@ -69,16 +68,24 @@ export default {
     console.log("Bionic text extension loaded.");
   },
   onunload: () => {
-    document.removeEventListener('keydown', keyboardToggle);
-    window.removeEventListener('popstate',autoToggleWhenBrowsing);
+    onToggleOf();
     if (buttonInTopBar) buttonToggle();
-    removeBionicNodes();
     window.roamAlphaAPI.ui
           .commandPalette
           .removeCommand({label: 'Toggle Bionic Text extension'});
     console.log("Bionic text extension unloaded.");
   }
 };
+
+function onToggleOf() {
+  let elt = document.querySelectorAll('.rm-block-text');
+  elt.forEach(item => {
+    item.removeEventListener('focusin', onFocusIn);
+  });
+  document.removeEventListener('keydown', keyboardToggle);
+  window.removeEventListener('popstate',autoToggleWhenBrowsing);
+  removeBionicNodes();
+}
 
 function keyboardToggle(e) {
   if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();
@@ -114,6 +121,8 @@ function buttonToggle() {
      console.log("Bionic text button added");
   }
   else {
+    document.getElementById(nameToUse+'-flex-space').remove();
+    document.getElementById(nameToUse+'-button').remove();
     checkForButton.remove();
     console.log("Bionic text button removed");
   }
@@ -123,38 +132,33 @@ function BionicMode() {
   fixNum = parseInt(fixation);
   sacNum = parseInt(saccade);
   isOn = !isOn;
-  
-  let elt = document.querySelectorAll('.rm-block-text');
-  
+
+  let elt = document.querySelectorAll(".rm-block-text");
+  applyBionicModeToSelection(elt);
+}
+
+function applyBionicModeToSelection(elt) {
   if (isOn) {
     if (isNewView) {
       window.addEventListener('popstate',autoToggleWhenBrowsing);
       console.log("Bionic text on: "+ version);
     }
-    else console.log("Bionic text refreshing current view.");
-    elt.forEach( el => {
-      processHtmlElement(el);
-      if (isNewView) el.addEventListener('focusin', onFocusIn);
-    });
-    if (lastElt!=null) {
-      document.getElementById(lastElt.id)
-        .addEventListener('focusin', onFocusIn);
+    for(let i=0;i<elt.length;i++) {
+      processHtmlElement(elt[i]);
+      let processedElt = document.getElementById(elt[i].id);
+      elt[i].addEventListener('focusin', onFocusIn);
+      //processedElt.addEventListener('focusin', onFocusIn);
     }
   }
   else {
-    console.log("Bionic text off.");
-    window.removeEventListener('popstate',autoToggleWhenBrowsing);
-    elt.forEach(item => {
-      item.removeEventListener('focusin', onFocusIn);
-    });
-    removeBionicNodes();
+    onToggleOf();
     isNewView=true;
     lastElt=null;
+    console.log("Bionic text off.");
   }
 }
   
 function processHtmlElement(el) {
-  //console.log(el);
   if (el.innerHTML.includes('<bionic>')==false) {
     let nodes = el.firstChild.childNodes;
     if (nodes.length!=0) {
@@ -166,27 +170,35 @@ function processHtmlElement(el) {
 }
 
 function onFocusIn(ev) {
-  lastElt = ev.target;
+  //lastElt = ev.target;
   isNewView=false;
-//   console.log("from In:");
-//   console.log(lastElt);
+  listenFocusOut('in');
+}
+
+function onFocusOut(ev) {
+  setTimeout(function () {
+      removeBionicNodes(lastElt);
+      lastElt = document.getElementById(lastElt.id);
+      applyBionicModeToSelection([lastElt]);      
+      listenFocusOut('out');
+  }, 200);
+}
+
+function listenFocusOut(from) {
   let tArea = document.getElementsByClassName("rm-block__input--active");
   setTimeout(function () {
     if (tArea.length!=0) {
         lastTextarea = tArea[0];
         lastTextarea.addEventListener('focusout', onFocusOut);
+        lastElt = document.getElementById(lastTextarea.id);
     }
-    lastElt.removeEventListener('focusin', onFocusIn);
+    /*if (from=='in') {
+      setTimeout(function () {
+        //removeBionicNodes(lastElt);
+        applyBionicModeToSelection([lastElt]);
+      },100);
+    }*/
   },100);
-}
-function onFocusOut(ev) {
-  setTimeout(function () {
-      lastTextarea.removeEventListener('focusout', onFocusOut);
-   //   console.log("from Out:");
-   //   console.log(lastElt);
-      isOn = false;
-      BionicMode();
-  }, 200);
 }
 
 function insertBionicNode(node) {
@@ -297,8 +309,6 @@ function autoToggleWhenBrowsing() {
 
 function removeBionicNodes(e = document) {
     let bionicElt = e.querySelectorAll("bionic");
-    //console.log('remove:');
-    //console.log(bionicElt);
     for (let i=0;i<bionicElt.length;i++) {
       let originalTxt = bionicElt[i].innerText;
       let eTxt = document.createTextNode(originalTxt);
