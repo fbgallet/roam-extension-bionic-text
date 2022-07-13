@@ -19,8 +19,7 @@ This extension makes changes only on the HTML level (current page display), not 
       - default: true
 
 ### Limitations
-- Auto-reapply is not working properly when navigating with keyboard
-- Bionic view is not immediately applied to new unfolded blocks or blocks opened in the sidebar (you need to focus/unfocus a previous block, or to switch on/off)
+- Bionic view is not immediately applied to new unfolded blocks or blocks opened in the sidebar (you need to reapply it to the whole page)
 
 ---------------
 If you find my work useful and want to encourage me to continue and improve the existing extensions or produce new ones, you can buy me a coffee ☕ [https://buymeacoffee.com/fbgallet](https://buymeacoffee.com/fbgallet) and follow me on Twitter: [@fbgallet](https://twitter.com/fbgallet).
