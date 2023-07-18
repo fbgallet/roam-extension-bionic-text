@@ -32,6 +32,8 @@ export var fixNum, sacNum;
 export var isOn = false;
 export var isNewView = true;
 
+const IsOnSmartphone = window.matchMedia("(max-width:1024px)").matches;
+
 const AppToaster = Toaster.create({
   className: "color-toaster",
   position: Position.TOP,
@@ -51,18 +53,21 @@ class Mode {
     this.isOn = false;
   }
   setToggleWay(way) {
-    let togglayWayArray = Array.from(toggleWaySet);
+    let toggleWayArray = Array.from(toggleWaySet);
     switch (way) {
-      case togglayWayArray[1]:
+      case toggleWayArray[1]:
         this.onButton = true;
         break;
-      case togglayWayArray[2]:
+      case toggleWayArray[2]:
         this.onLoad = true;
         break;
       default:
         this.onButton = false;
         this.onLoad = false;
     }
+  }
+  initialize() {
+    if (this.onLoad || (IsOnSmartphone && this.onSmartphone)) this.isOn = true;
   }
 }
 
@@ -237,19 +242,24 @@ export default {
 
     extensionAPI.settings.panel.create(panelConfig);
 
+    if (extensionAPI.settings.get("smartphone-setting") == null) {
+      extensionAPI.settings.set("smartphone-setting", "Default");
+    } else
+      setSmartphoneSettings(extensionAPI.settings.get("smartphone-setting"));
+
     if (!toggleWaySet.has(extensionAPI.settings.get("readonly-setting"))) {
       extensionAPI.settings.set("readonly-setting", "With topbar button");
       readOnlyMode.setToggleWay("With topbar button");
     } else
       readOnlyMode.setToggleWay(extensionAPI.settings.get("readonly-setting"));
-    if (readOnlyMode.onLoad) readOnlyMode.isOn = true;
+    readOnlyMode.initialize();
 
     if (extensionAPI.settings.get("navigation-setting") == null) {
       extensionAPI.settings.set("navigation-setting", "With topbar button");
       navMode.setToggleWay("With topbar button");
     } else
       navMode.setToggleWay(extensionAPI.settings.get("navigation-setting"));
-    if (navMode.onLoad) navMode.isOn = true;
+    navMode.initialize();
 
     if (extensionAPI.settings.get("select-setting") == null) {
       extensionAPI.settings.set("select-setting", "With command palette only");
@@ -258,19 +268,19 @@ export default {
       selectOnClickMode.setToggleWay(
         extensionAPI.settings.get("select-setting")
       );
-    if (selectOnClickMode.onLoad) selectOnClickMode.isOn = true;
+    selectOnClickMode.initialize();
 
     if (extensionAPI.settings.get("focus-setting") == null) {
       extensionAPI.settings.set("focus-setting", "With command palette only");
       focusMode.setToggleWay("With command palette only");
     } else focusMode.setToggleWay(extensionAPI.settings.get("focus-setting"));
-    if (focusMode.onLoad) focusMode.isOn = true;
+    focusMode.initialize();
 
     if (extensionAPI.settings.get("bionic-setting") == null) {
       extensionAPI.settings.set("button-setting", "With command palette only");
       bionicMode.setToggleWay("With command palette only");
     } else bionicMode.setToggleWay(extensionAPI.settings.get("bionic-setting"));
-    if (bionicMode.onLoad) bionicMode.isOn = true;
+    bionicMode.initialize();
     if (extensionAPI.settings.get("fixation-setting") == null) fixation = 50;
     else fixation = extensionAPI.settings.get("fixation-setting");
     fixNum = parseInt(fixation);
@@ -281,15 +291,6 @@ export default {
       extensionAPI.settings.set("button-setting", true);
       buttonInTopBar = true;
     } else buttonInTopBar = extensionAPI.settings.get("button-setting");
-
-    if (extensionAPI.settings.get("smartphone-setting") == null) {
-      extensionAPI.settings.set("smartphone-setting", "Default");
-    } else
-      setSmartphoneSettings(extensionAPI.settings.get("smartphone-setting"));
-    if (window.matchMedia("(max-width:1024px)").matches) {
-      if (readOnlyMode.onSmartphone) readOnlyMode.isOn = true;
-      if (navMode.onSmartphone) navMode.isOn = true;
-    }
 
     extensionAPI.ui.commandPalette.addCommand({
       label: "Reading Modes: Toggle Read only mode",
@@ -359,9 +360,13 @@ export default {
       "default-hotkey": "ctrl-alt-down",
     });
 
+    if (buttonInTopBar) buttonToggle();
+    if (readOnlyMode.isOn) {
+      isOn = true;
+      toggleButtonIcon();
+    }
     window.addEventListener("popstate", autoToggleWhenBrowsing);
     applyEnabledModes();
-    if (buttonInTopBar) buttonToggle();
     console.log("Reading mode extension loaded.");
   },
   onunload: () => {
