@@ -1,0 +1,25 @@
+{
+  "name": "roam-extension-bionic-text",
+  "version": "1.0.0",
+  "description": "Display all texts on your current Roam page in a similar way as '[Bionic Reading](https://bionic-reading.com)': put in bold the first part of words, allegedly for **faster, more focused reading and better memorization**",
+  "main": "extension.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbgallet/roam-extension-bionic-text.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fbgallet/roam-extension-bionic-text/issues"
+  },
+  "homepage": "https://github.com/fbgallet/roam-extension-bionic-text#readme",
+  "dependencies": {
+    "react": "^18.2.0",
+    "roamjs-scripts": "^0.27.0"
+  },
+  "devDependencies": {}
+}
