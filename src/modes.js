@@ -1,41 +1,32 @@
 import {
+  ROAM_APP_ELT,
   autoToggleWhenBrowsing,
   bionicMode,
-  fixNum,
+  fixation,
   isNewView,
-  isOn,
+  letterSpacing,
+  lineHeight,
   navMode,
-  onToggleOf,
   readOnlyMode,
-  sacNum,
+  saccade,
   selectOnClickMode,
 } from ".";
-import {
-  getChildrenTree,
-  getFirstChildUid,
-  getFirstChildren,
-  getFirstLevelChildren,
-  getFirstLevelOfChildrenOrdered,
-  getParentUID,
-  getSiblingsAndOrder,
-} from "./utils";
+import { getFirstChildUid, getParentUID, getSiblingsAndOrder } from "./utils";
 
 export function applyModesToSelection(elt) {
-  // if (isOn) {
   if (isNewView) {
     window.addEventListener("popstate", autoToggleWhenBrowsing);
     //console.log("Bionic text on: " + version);
   }
-  if (elt)
+  if (elt) {
+    if (readOnlyMode.isOn) readOnlyInKanban();
     for (let i = 0; i < elt.length; i++) {
       //console.log(elt[i]);
       if (bionicMode.isOn) processHtmlElement(elt[i]);
       if (readOnlyMode.isOn) readOnly(elt[i]);
-      if (selectOnClickMode.isOn) selectOnClick(elt[i]);
+      if (selectOnClickMode.isOn) prepareBlockToSelectOnClick(elt[i]);
     }
-  // } else {
-  //   onToggleOf();
-  // }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,60 +34,83 @@ export function applyModesToSelection(elt) {
 ////////////////////////////////////////////////////////////////////////////////
 
 export function readOnly(elt) {
-  elt.style.pointerEvents = "none";
-  let eltToExclude = elt.querySelectorAll(
-    ".rm-page-ref, .rm-block-ref, .check-container, a, button, iframe, .rm-inline-img__resize, .react-resizable"
+  if (elt) {
+    elt.style.pointerEvents = "none";
+    let eltToExclude = elt.querySelectorAll(
+      ".rm-page-ref, .rm-block-ref, .check-container, a, button, iframe, .rm-inline-img__resize, .react-resizable"
+    );
+    eltToExclude.forEach((e) => (e.style.pointerEvents = "all"));
+    // let eltToForce = elt.closest(".kanban-column");
+    // if (eltToForce) eltToForce.forEach((e) => (e.style.pointerEvents = "none"));
+    let codeBlocks = elt.querySelectorAll(".cm-content");
+    codeBlocks.forEach((e) => (e.contentEditable = "false"));
+  }
+}
+
+export function readOnlyInKanban() {
+  let kanban = document.querySelectorAll(".kanban-board");
+  if (kanban) kanban.forEach((e) => (e.style.pointerEvents = "none"));
+}
+
+export function readOnlyPageTitle() {
+  let pageTitle = document.querySelector(".rm-title-display");
+  if (pageTitle) pageTitle.style.pointerEvents = "none";
+}
+
+export function removeReadOnly() {
+  let elt = document.querySelectorAll(".rm-block-text");
+  elt.forEach((item) => {
+    item.style.pointerEvents = "all";
+    let eltToForce = item.closest(".kanban-column");
+    eltToForce.forEach((e) => (e.style.pointerEvents = "all"));
+    let codeBlocks = item.querySelectorAll(".cm-content");
+    codeBlocks.forEach((e) => (e.contentEditable = "true"));
+  });
+  ROAM_APP_ELT.classList.remove(
+    `read-ls-${letterSpacing.toString().replace(".", "")}`
   );
-  eltToExclude.forEach((e) => (e.style.pointerEvents = "all"));
-  let eltToForce = elt.querySelectorAll(".kanban-card");
-  eltToForce.forEach((e) => (e.style.pointerEvents = "none"));
+  ROAM_APP_ELT.classList.remove(
+    `read-lh-${lineHeight.toString().replace(".", "")}`
+  );
+  let pageTitle = document.querySelector(".rm-title-display");
+  if (pageTitle) pageTitle.style.pointerEvents = "all";
+  let kanban = document.querySelectorAll(".kanban-board");
+  if (kanban) kanban.forEach((e) => (e.style.pointerEvents = "all"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Select on click mode
 ////////////////////////////////////////////////////////////////////////////////
 
-export function onlySelect(elt) {
-  elt.addEventListener("click", selectOnClick);
-}
-
-function selectOnClick(e) {
-  //let classes = [...e?.classList];
-  // if (
-  //   (classes.includes("rm-block__input") &&
-  //     ![...e.closest(".rm-block").classList].includes("block-highlight-blue") &&
-  //     !classes.includes("rm-block__input--active")) ||
-  //   [...e.parentElement.classList].includes("cm-content")
-  // )
-  if (
-    (![...e.parentElement?.classList]?.includes("block-highlight-blue") ||
-      [...e.parentElement?.classList]?.includes("cm-content")) &&
-    e.classList.contains("rm-block-text")
-  ) {
-    e.style.pointerEvents = "none";
-    e.parentElement.addEventListener("mousedown", highlightBlockOnClick, {
-      once: true,
-    });
-  } else {
-    e.parentElement?.classList?.remove("block-highlight-blue");
-    setTimeout(() => {
-      applyModesToSelection([e]);
-    }, 100);
-  }
+function prepareBlockToSelectOnClick(e) {
+  e.style.pointerEvents = "none";
+  e.parentElement.addEventListener("mousedown", highlightBlockOnClick);
 }
 
 export function highlightBlockOnClick(e) {
-  cleanBlue();
-  e.target.classList.add("block-highlight-blue");
-  if (!readOnlyMode.isOn)
-    e.target.querySelector(".rm-block-text").style.pointerEvents = "all";
-  e.preventDefault();
+  let rmBlockMain = e.target.closest(".rm-block-main");
+  let rmBlockText = e.target.querySelector(".rm-block-text");
+  if (
+    ![...rmBlockMain.classList]?.includes("block-highlight-blue") ||
+    [...rmBlockMain.classList]?.includes("cm-content")
+    // &&  e.target.classList.contains("rm-block-text")
+  ) {
+    //console.log("click => blue");
+    cleanBlue();
+    rmBlockMain.classList.add("block-highlight-blue");
+    if (!readOnlyMode.isOn && rmBlockText)
+      rmBlockText.style.pointerEvents = "all";
+    //    e.preventDefault();
+  } else {
+    // console.log("click when blue");
+    rmBlockMain.classList.remove("block-highlight-blue");
+  }
 }
 
 export function cleanBlue(off = false) {
   let blues = document.querySelectorAll(".block-highlight-blue");
   blues.forEach((block) => {
-    block.classList?.remove("block-highlight-blue");
+    block.classList.remove("block-highlight-blue");
     if (!off) applyModesToSelection([block.querySelector(".rm-block-text")]);
   });
 }
@@ -130,7 +144,7 @@ export function onClickToCleanBlue(e) {
 // Bionic mode
 ////////////////////////////////////////////////////////////////////////////////
 
-function processHtmlElement(el) {
+export function processHtmlElement(el) {
   if (el.innerHTML.includes("<bionic>") == false) {
     let nodes = el.firstChild.childNodes;
     //console.log(nodes);
@@ -142,7 +156,7 @@ function processHtmlElement(el) {
   }
 }
 
-function insertBionicNode(node) {
+export function insertBionicNode(node) {
   //console.log(node);
   if (node.nodeType == 3) {
     // nodeType 3 is Text
@@ -201,7 +215,7 @@ function processTextNode(text, node) {
   let spaceShift = 0;
   for (let i = 0; i < splitText.length; i++) {
     let t;
-    if (i == 0 || (i + spaceShift) % sacNum == 0) {
+    if (i == 0 || (i + spaceShift) % saccade == 0) {
       let word = splitText[i];
       if (word != "") {
         let midIndex = getmiddleIndex(word);
@@ -232,9 +246,9 @@ function getmiddleIndex(word) {
   let midIndex = 0;
   let len = word.length;
   if (!/\p{Extended_Pictographic}/u.test(word)) {
-    if (len > 3) midIndex = Math.ceil((len * fixNum) / 100);
+    if (len > 3) midIndex = Math.ceil((len * fixation) / 100);
     else {
-      midIndex = Math.floor((len * fixNum) / 100);
+      midIndex = Math.floor((len * fixation) / 100);
       if (midIndex < 1) midIndex = 1;
     }
   }
@@ -294,7 +308,7 @@ export async function updateNavigation() {
   topViewBlockContext = new BlockContext(
     await window.roamAlphaAPI.ui.mainWindow.getOpenPageOrBlockUid()
   );
-  console.log(topViewBlockContext);
+  // console.log(topViewBlockContext);
   if (navMode.isOn) updateChevronsElts();
 }
 
@@ -357,24 +371,17 @@ function animChevron(chevron, direction) {
   chevron.classList.add(`${direction}-chevron-anim`);
   setTimeout(() => {
     chevron.classList.remove(`${direction}-chevron-anim`);
-  }, 2000);
+  }, 1000);
 }
 
 export function removeChevrons() {
   let chevrons = document.querySelector(".chevrons");
   if (chevrons) {
-    // topChevron.style.visibility = "hidden";
-    // rightChevron.style.opacity = "0";
-    // bottomChevron.style.visibility = "hidden";
-    // leftChevron.style.visibility = "hidden";
     chevrons.remove();
   }
 }
 
 export async function navigateToBlock(direction) {
-  // let topUid = await window.roamAlphaAPI.ui.mainWindow.getOpenPageOrBlockUid();
-  // let topUid = topViewBlockContext.uid;
-  // let parent;
   if (!navMode.isOn) await updateNavigation();
   let targetUid;
   switch (direction) {
@@ -393,7 +400,6 @@ export async function navigateToBlock(direction) {
       targetUid = topViewBlockContext.getParent();
       break;
   }
-  console.log(targetUid);
   if (targetUid) {
     if (navMode.isOn)
       animChevron(document.querySelector(`.${direction}-chevron`), direction);

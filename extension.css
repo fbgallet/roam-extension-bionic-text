@@ -1,25 +1,143 @@
+:root {
+  --roam-block-padding-bottom: 4px;
+}
+
+.rm-settings-panel .bp3-slider {
+  max-width: 200px;
+  margin-left: 10px;
+}
+
 .block-highlight-blue {
   background-color: #53a0ff7e; /* #53a1ffb7 */
   border-radius: 5px;
 }
 
-.read-focus .roam-sidebar-container,
-.read-focus .rm-topbar,
-.read-focus .rm-title-display,
-.read-focus .rm-zoom,
-.read-focus .rm-ref-page-view-title,
-.read-focus #right-sidebar,
-.read-focus .window-headers,
-.read-focus .rm-sidebar-window__controls {
+.roam-app.read-ls-002 {
+  letter-spacing: 0.02rem;
+  word-spacing: 0.04rem;
+}
+.roam-app.read-ls-004 {
+  letter-spacing: 0.04rem;
+  word-spacing: 0.08rem;
+}
+.roam-app.read-ls-006 {
+  letter-spacing: 0.06rem;
+  word-spacing: 0.12rem;
+}
+.roam-app.read-ls-008 {
+  letter-spacing: 0.08rem;
+  word-spacing: 0.16rem;
+}
+.roam-app.read-ls-010 {
+  letter-spacing: 0.1rem;
+  word-spacing: 0.2rem;
+}
+
+.roam-app.read-lh-16 .roam-block {
+  line-height: 1.6rem;
+  margin-bottom: calc(var(--roam-block-padding-bottom) + 1px);
+}
+.roam-app.read-lh-17 .roam-block {
+  line-height: 1.7rem;
+  margin-bottom: calc(var(--roam-block-padding-bottom) + 2px);
+}
+.roam-app.read-lh-18 .roam-block {
+  line-height: 1.8rem;
+  margin-bottom: calc(var(--roam-block-padding-bottom) + 3px);
+}
+.roam-app.read-lh-19 .roam-block {
+  line-height: 1.9rem;
+  margin-bottom: calc(var(--roam-block-padding-bottom) + 4px);
+}
+.roam-app.read-lh-20 .roam-block {
+  line-height: 2rem;
+  margin-bottom: calc(var(--roam-block-padding-bottom) + 5px);
+}
+
+.read-focus.rf-0 .roam-sidebar-container,
+.read-focus.rf-0 .rm-title-display,
+.read-focus.rf-0 .rm-topbar,
+.read-focus.rf-0 .rm-zoom,
+.read-focus.rf-0 .rm-ref-page-view-title,
+.read-focus.rf-0 #right-sidebar,
+.read-focus.rf-0 .window-headers,
+.read-focus.rf-0 .rm-sidebar-window__controls {
+  opacity: 0;
+}
+.read-focus.rf-003 .roam-sidebar-container,
+.read-focus.rf-003 .rm-topbar,
+.read-focus.rf-003 .rm-title-display,
+.read-focus.rf-003 .rm-zoom,
+.read-focus.rf-003 .rm-ref-page-view-title,
+.read-focus.rf-003 #right-sidebar,
+.read-focus.rf-003 .window-headers,
+.read-focus.rf-003 .rm-sidebar-window__controls {
+  opacity: 0.03;
+}
+.read-focus.rf-005 .roam-sidebar-container,
+.read-focus.rf-005 .rm-topbar,
+.read-focus.rf-005 .rm-title-display,
+.read-focus.rf-005 .rm-zoom,
+.read-focus.rf-005 .rm-ref-page-view-title,
+.read-focus.rf-005 #right-sidebar,
+.read-focus.rf-005 .window-headers,
+.read-focus.rf-005 .rm-sidebar-window__controls {
+  opacity: 0.05;
+}
+.read-focus.rf-01 .roam-sidebar-container,
+.read-focus.rf-01 .rm-topbar,
+.read-focus.rf-01 .rm-title-display,
+.read-focus.rf-01 .rm-zoom,
+.read-focus.rf-01 .rm-ref-page-view-title,
+.read-focus.rf-01 #right-sidebar,
+.read-focus.rf-01 .window-headers,
+.read-focus.rf-01 .rm-sidebar-window__controls {
   opacity: 0.1;
 }
-.read-focus #right-sidebar:hover {
+.read-focus.rf-02 .roam-sidebar-container,
+.read-focus.rf-02 .rm-topbar,
+.read-focus.rf-02 .rm-title-display,
+.read-focus.rf-02 .rm-zoom,
+.read-focus.rf-02 .rm-ref-page-view-title,
+.read-focus.rf-02 #right-sidebar,
+.read-focus.rf-02 .window-headers,
+.read-focus.rf-02 .rm-sidebar-window__controls {
+  opacity: 0.2;
+}
+.read-focus.rf-03 .roam-sidebar-container,
+.read-focus.rf-03 .rm-topbar,
+.read-focus.rf-03 .rm-title-display,
+.read-focus.rf-03 .rm-zoom,
+.read-focus.rf-03 .rm-ref-page-view-title,
+.read-focus.rf-03 #right-sidebar,
+.read-focus.rf-03 .window-headers,
+.read-focus.rf-03 .rm-sidebar-window__controls {
+  opacity: 0.3;
+}
+.read-focus.rf-05 .roam-sidebar-container,
+.read-focus.rf-05 .rm-topbar,
+.read-focus.rf-05 .rm-title-display,
+.read-focus.rf-05 .rm-zoom,
+.read-focus.rf-05 .rm-ref-page-view-title,
+.read-focus.rf-05 #right-sidebar,
+.read-focus.rf-05 .window-headers,
+.read-focus.rf-05 .rm-sidebar-window__controls {
+  opacity: 0.5;
+}
+.read-focus .roam-sidebar-container:hover,
+.read-focus .rm-topbar:hover,
+.read-focus .rm-title-display:hover,
+.read-focus .rm-zoom:hover,
+.read-focus .rm-ref-page-view-title:hover,
+.read-focus #right-sidebar:hover,
+.read-focus .window-headers:hover,
+.read-focus .rm-sidebar-window__controls:hover {
   opacity: 1;
-  transition: opacity 0.5s ease;
+  transition: opacity 1s ease;
 }
 
 .read-focus .rm-block-main {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease;
 }
 
 .read-focus .roam-article:hover .rm-block-main:hover,
@@ -29,22 +147,78 @@
 .read-focus .roam-article:hover .rm-zoom:hover,
 .read-focus #right-sidebar:hover .rm-block-main:hover {
   opacity: 1 !important;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease;
   /*transition: transform 0.3s ease;
   transform: scale(1.15) translateX(8%);*/
 }
-.read-focus .roam-article:hover .rm-block-main:hover + .rm-block-main {
-  opacity: 0.7 !important;
-}
-
-.read-focus
+.read-focus.rf-0
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
-.read-focus .roam-article:hover .controls,
-.read-focus .roam-article:hover .rm-block-main:hover .rm-multibar,
-.read-focus .roam-article:hover .rm-multibar,
-.read-focus #right-sidebar:hover .rm-block-main {
+.read-focus.rf-0 .roam-article:hover .controls,
+.read-focus.rf-0 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-0 .roam-article:hover .rm-multibar,
+.read-focus.rf-0 #right-sidebar:hover .rm-block-main {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-003
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-003 .roam-article:hover .controls,
+.read-focus.rf-003 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-003 .roam-article:hover .rm-multibar,
+.read-focus.rf-003 #right-sidebar:hover .rm-block-main {
+  opacity: 0.03;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-005
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-005 .roam-article:hover .controls,
+.read-focus.rf-005 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-005 .roam-article:hover .rm-multibar,
+.read-focus.rf-005 #right-sidebar:hover .rm-block-main {
+  opacity: 0.05;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-01
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-01 .roam-article:hover .controls,
+.read-focus.rf-01 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-01 .roam-article:hover .rm-multibar,
+.read-focus.rf-01 #right-sidebar:hover .rm-block-main {
   opacity: 0.1;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-02
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-02 .roam-article:hover .controls,
+.read-focus.rf-02 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-02 .roam-article:hover .rm-multibar,
+.read-focus.rf-02 #right-sidebar:hover .rm-block-main {
+  opacity: 0.2;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-03
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-03 .roam-article:hover .controls,
+.read-focus.rf-03 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-03 .roam-article:hover .rm-multibar,
+.read-focus.rf-03 #right-sidebar:hover .rm-block-main {
+  opacity: 0.3;
+  transition: opacity 1s ease;
+}
+.read-focus.rf-05
+  .roam-article:hover
+  .rm-block-main:has(:not(.rm-block__input--active)),
+.read-focus.rf-05 .roam-article:hover .controls,
+.read-focus .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.rf-05 .roam-article:hover .rm-multibar,
+.read-focus.rf-05 #right-sidebar:hover .rm-block-main {
+  opacity: 0.5;
   transition: opacity 1s ease;
 }
 .read-focus .block-highlight-blue,
@@ -94,7 +268,7 @@
   }
 }
 .chevron:hover {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .top-chevron {
@@ -154,7 +328,7 @@
   }
   50% {
     transform: rotate(90deg) scale(1.3);
-    opacity: 0.5;
+    opacity: 0.6;
   }
   100% {
     transform: rotate(90deg);
@@ -166,7 +340,7 @@
   }
   50% {
     transform: scale(1.3);
-    opacity: 0.5;
+    opacity: 0.6;
   }
   /* 
   100% {

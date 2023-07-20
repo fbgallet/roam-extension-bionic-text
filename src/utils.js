@@ -1,16 +1,3 @@
-// export function getFirstChildren(uid) {
-//   let result = [];
-//   if (uid) {
-//     result = window.roamAlphaAPI.q(`[:find (pull ?page
-//       [:block/uid :block/string :block/children :block/order
-//       {:block/children ...}])
-//        :where [?page :block/uid "${uid}"]  ]`);
-//     console.log(result);
-//     if (result.length > 0) return result[0][0].children;
-//   }
-//   return result;
-// }
-
 export function getFirstLevelOfChildrenOrdered(uid) {
   if (uid) {
     let result = window.roamAlphaAPI.pull(

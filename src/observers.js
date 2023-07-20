@@ -1,14 +1,7 @@
-import { bionicMode, isOn, readOnlyMode, selectOnClickMode } from ".";
-import {
-  applyModesToSelection,
-  cleanBlue,
-  navigateToBlock,
-  openNextSibblingBlock,
-} from "./modes";
+import { bionicMode, readOnlyMode, selectOnClickMode } from ".";
+import { applyModesToSelection, cleanBlue } from "./modes";
 
-export var runners = {
-  observers: [],
-};
+export var runners = {};
 export var refs = [];
 export var counters = [];
 
@@ -94,7 +87,7 @@ function onNewPageInDailyLog(mutation) {
 function onMutationOnMainPage(mutation) {
   let txtElts;
   //console.log(mutation);
-  if (readOnlyMode.isOn || bionicMode.isOn) {
+  if (readOnlyMode.isOn || bionicMode.isOn || selectOnClickMode.isOn) {
     if (
       (mutation[0].target.closest(".roam-sidebar-container") &&
         mutation[0].target.className === "ref-count-extension") ||
@@ -110,7 +103,7 @@ function onMutationOnMainPage(mutation) {
         mutation[i].target.localName != "textarea"
       ) {
         if (mutation[0].addedNodes[0]?.classList?.contains("rm-block")) {
-          console.log("blocks expanded");
+          //console.log("blocks expanded");
           //console.log(mutation);
           txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
           applyModesToSelection(txtElts);
@@ -118,7 +111,7 @@ function onMutationOnMainPage(mutation) {
         } else if (
           mutation[i].addedNodes[0]?.classList?.contains("rm-block__input")
         ) {
-          console.log("block updated!");
+          //console.log("block updated!");
           txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
           applyModesToSelection(txtElts);
           //return;
@@ -127,14 +120,14 @@ function onMutationOnMainPage(mutation) {
           mutation[i].addedNodes[0]?.parentElement?.className ===
             "rm-ref-page-view"
         ) {
-          console.log("In Linked refs");
+          //console.log("In Linked refs");
           txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
           applyModesToSelection(txtElts);
         } else if (
           mutation[i].addedNodes[0]?.parentElement?.className ===
           "sidebar-content"
         ) {
-          console.log("In right sidebar");
+          //console.log("In right sidebar");
           applyModesToSelection(mutation[i].addedNodes[0]);
           return;
         } else if (mutation[i].target.className === "rm-sidebar-window") {
@@ -146,7 +139,7 @@ function onMutationOnMainPage(mutation) {
           i == 1 &&
           mutation[0].removedNodes?.length > 0
         ) {
-          console.log("Checked or unchecked");
+          //console.log("Checked or unchecked");
           applyModesToSelection([mutation[1].addedNodes[0]]);
         }
       }
@@ -164,6 +157,8 @@ export function onKeydown(e) {
       e.key === "c" &&
       document.querySelector(".block-highlight-blue")
     ) {
+      let selection = window.getSelection();
+      if (selection && selection.anchorOffset != selection.extentOffset) return;
       let highlighted = Array.from(
         document.querySelectorAll(".block-highlight-blue")
       );
@@ -176,26 +171,8 @@ export function onKeydown(e) {
           concatened + text.querySelector(".rm-block-text").innerText + "\n",
         ""
       );
-      // console.log(highlightedText);
+      console.log("Copied to clipbard:", highlightedText);
       navigator.clipboard.writeText(highlightedText.slice(0, -1));
     }
   }
-  //if (navMode.isOn) {
-  if (e.ctrlKey || e.cmdKey) {
-    switch (e.key) {
-      case "ArrowLeft":
-        navigateToBlock("left");
-        break;
-      case "ArrowRight":
-        navigateToBlock("right");
-        break;
-      case "ArrowUp":
-        navigateToBlock("top");
-        break;
-      case "ArrowDown":
-        navigateToBlock("bottom");
-        break;
-    }
-  }
-  //}
 }
