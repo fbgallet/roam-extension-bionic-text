@@ -2,7 +2,7 @@
 
 Read-only, Navigation controls, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading). All these modes can be enabled independently or in groups via a topbar button and commands in Command palette.
 
-
+![Reading modes readme](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/d1bb6d4e-c534-4ffa-b224-daf1fda7c176)
 
 For each mode, you can choose to enable it only via the command palette, or via the topbar button, or when the graph is loaded (which can be useful for sensitive data). Read-only and navigation controls can also be automatically enabled on mobile only.
 
@@ -30,7 +30,8 @@ Only the currently hovered or edited block is visible, everything else (other bl
 ### Bionic mode
 Display all texts in a similar way as '[Bionic Reading](https://bionic-reading.com)': put in bold the first part of words, allegedly for **faster, more focused reading and better memorization**
 
-![image](https://user-images.githubusercontent.com/74436347/178007300-263361a9-d901-4c59-b2c5-bd9a42c2aa36.png)
+![image](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/1c79a45a-99f3-4915-9b0b-c816aba5758c)
+
 
 This extension makes changes only on the HTML level (current page display), not on your data!
 
