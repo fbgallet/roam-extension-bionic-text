@@ -391,7 +391,7 @@ export default {
       },
     });
     extensionAPI.ui.commandPalette.addCommand({
-      label: "Reading Modes: Toggle Select on click mode",
+      label: "Reading Modes: Toggle Click-to-Select mode",
       callback: () => {
         selectOnClickMode.isOn = !selectOnClickMode.isOn;
         updateAfterSettingsChange(
