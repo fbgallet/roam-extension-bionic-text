@@ -1,13 +1,16 @@
 # Reading modes
 
-Read-only, block navigation controls, focus mode, click-to-select (instead of edit) and Bionic mode (Bionic reading). All these modes can be enabled independently or in groups via a topbar button and commands in Command palette.
+Read-only, Navigation controls, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading). All these modes can be enabled independently or in groups via a topbar button and commands in Command palette.
+
+
 
 For each mode, you can choose to enable it only via the command palette, or via the topbar button, or when the graph is loaded (which can be useful for sensitive data). Read-only and navigation controls can also be automatically enabled on mobile only.
 
 ### Read-only
 
 Block content and page title can't be edited, but you can still click on links, checkboxes, buttons and all other controls.
-You can set letter spacing and line height for better readability.
+
+You can increase letter spacing and line height for better readability.
 
 ### Navigation controls
 
@@ -22,21 +25,20 @@ When you click in a block, it will be selected (blue highleighted) instead of ed
 
 ### Focus mode
 
+Only the currently hovered or edited block is visible, everything else (other blocks, bullets, title, sidebar, top bar, etc.) becomes partially or completely transparent depending on the chosen opacity level (from 0 to 0.5). Simply move the mouse to the margin to make all blocks reappear, or hover over an element to make it appear.
 
 ### Bionic mode
-Display all texts on your current Roam page in a similar way as '[Bionic Reading](https://bionic-reading.com)': put in bold the first part of words, allegedly for **faster, more focused reading and better memorization**
+Display all texts in a similar way as '[Bionic Reading](https://bionic-reading.com)': put in bold the first part of words, allegedly for **faster, more focused reading and better memorization**
 
 ![image](https://user-images.githubusercontent.com/74436347/178007300-263361a9-d901-4c59-b2c5-bd9a42c2aa36.png)
 
 This extension makes changes only on the HTML level (current page display), not on your data!
-Settings:
+
+Settings for Bionic mode:
   - **fixation** (percentage of word in bold, from 0 to 100)          
       - default: 50
   - **saccade** (applies every x words, from 1 to 5)          
       - default: 1
-
-### Limitations
-- Bionic view is not immediately applied to new unfolded blocks or blocks opened in the sidebar (you need to reapply it to the whole page)
 
 ---------------
 If you find my work useful and want to encourage me to continue and improve the existing extensions or produce new ones, you can buy me a coffee ☕ [https://buymeacoffee.com/fbgallet](https://buymeacoffee.com/fbgallet) and follow me on Twitter: [@fbgallet](https://twitter.com/fbgallet).
