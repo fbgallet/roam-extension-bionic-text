@@ -21,7 +21,7 @@ Inserts very subtle controls (arrows in cardinal directions) in the bottom right
 
 ### Click-to-select
 
-When you click in a block, it will be selected (blue highleighted) instead of edited on the first click. If you click again (and Read-only is not enabled), you will enter in edit mode. It's like a light, responsive read-only mode!
+When you click in a block, it will be selected (blue highlighted) instead of edited on the first click. If you click again (and Read-only is not enabled), you will enter in edit mode. It's like a light, responsive read-only mode!
 
 ### Focus mode
 
