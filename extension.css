@@ -1,7 +1,3 @@
-:root {
-  --roam-block-padding-bottom: 4px;
-}
-
 .rm-settings-panel .bp3-slider {
   max-width: 200px;
   margin-left: 10px;
@@ -35,23 +31,23 @@
 
 .roam-app.read-lh-16 .roam-block {
   line-height: 1.6rem;
-  margin-bottom: calc(var(--roam-block-padding-bottom) + 1px);
+  margin-bottom: 1px;
 }
 .roam-app.read-lh-17 .roam-block {
   line-height: 1.7rem;
-  margin-bottom: calc(var(--roam-block-padding-bottom) + 2px);
+  margin-bottom: 2px;
 }
 .roam-app.read-lh-18 .roam-block {
   line-height: 1.8rem;
-  margin-bottom: calc(var(--roam-block-padding-bottom) + 3px);
+  margin-bottom: 3px;
 }
 .roam-app.read-lh-19 .roam-block {
   line-height: 1.9rem;
-  margin-bottom: calc(var(--roam-block-padding-bottom) + 4px);
+  margin-bottom: 4px;
 }
 .roam-app.read-lh-20 .roam-block {
   line-height: 2rem;
-  margin-bottom: calc(var(--roam-block-padding-bottom) + 5px);
+  margin-bottom: 5px;
 }
 
 .read-focus.rf-0 .roam-sidebar-container,

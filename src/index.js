@@ -78,6 +78,10 @@ class Mode {
     if (this.onLoad || (IS_ON_SMARTPHONE && this.onSmartphone))
       this.isOn = true;
   }
+  set(status) {
+    if (status == "on") this.isOn = true;
+    if (status == "off") this.isOn = false;
+  }
 }
 
 export var bionicMode = new Mode(),
@@ -408,6 +412,22 @@ export default {
       callback: () => {
         bionicMode.isOn = !bionicMode.isOn;
         updateAfterSettingsChange("Bionic mode", bionicMode.isOn);
+      },
+    });
+    extensionAPI.ui.commandPalette.addCommand({
+      label: "Reading Modes: Toggle modes triggered by the button",
+      callback: () => {
+        isOn = !isOn;
+        onClickOnTopbarButton();
+      },
+    });
+    extensionAPI.ui.commandPalette.addCommand({
+      label: "Reading Modes: Disable all modes",
+      callback: () => {
+        modesArray.forEach((mode) => mode.set("off"));
+        isOn = false;
+        toggleButtonIcon();
+        onToggleOf();
       },
     });
 

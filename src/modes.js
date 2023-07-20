@@ -62,9 +62,9 @@ export function removeReadOnly() {
   elt.forEach((item) => {
     item.style.pointerEvents = "all";
     let eltToForce = item.closest(".kanban-column");
-    eltToForce.forEach((e) => (e.style.pointerEvents = "all"));
+    if (eltToForce) eltToForce.style.pointerEvents = "all";
     let codeBlocks = item.querySelectorAll(".cm-content");
-    codeBlocks.forEach((e) => (e.contentEditable = "true"));
+    if (codeBlocks) codeBlocks.forEach((e) => (e.contentEditable = "true"));
   });
   ROAM_APP_ELT.classList.remove(
     `read-ls-${letterSpacing.toString().replace(".", "")}`
