@@ -40,8 +40,6 @@ export function readOnly(elt) {
       ".rm-page-ref, .rm-block-ref, .check-container, a, button, iframe, .rm-inline-img__resize, .react-resizable"
     );
     eltToExclude.forEach((e) => (e.style.pointerEvents = "all"));
-    // let eltToForce = elt.closest(".kanban-column");
-    // if (eltToForce) eltToForce.forEach((e) => (e.style.pointerEvents = "none"));
     let codeBlocks = elt.querySelectorAll(".cm-content");
     codeBlocks.forEach((e) => (e.contentEditable = "false"));
   }
@@ -59,13 +57,12 @@ export function readOnlyPageTitle() {
 
 export function removeReadOnly() {
   let elt = document.querySelectorAll(".rm-block-text");
-  elt.forEach((item) => {
-    item.style.pointerEvents = "all";
-    let eltToForce = item.closest(".kanban-column");
-    if (eltToForce) eltToForce.style.pointerEvents = "all";
-    let codeBlocks = item.querySelectorAll(".cm-content");
-    if (codeBlocks) codeBlocks.forEach((e) => (e.contentEditable = "true"));
-  });
+  if (!selectOnClickMode.isOn)
+    elt.forEach((item) => {
+      item.style.pointerEvents = "all";
+      let codeBlocks = item.querySelectorAll(".cm-content");
+      if (codeBlocks) codeBlocks.forEach((e) => (e.contentEditable = "true"));
+    });
   ROAM_APP_ELT.classList.remove(
     `read-ls-${letterSpacing.toString().replace(".", "")}`
   );

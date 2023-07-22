@@ -55,3 +55,7 @@ export function getParentUID(uid) {
   if (result.length > 0) return result[0][0];
   else return null;
 }
+
+export function reduceToFixedValue(value, min, fixedTo) {
+  return value < min + 0.01 ? min : value.toFixed(fixedTo);
+}

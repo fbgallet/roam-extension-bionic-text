@@ -2,9 +2,7 @@
   Bionic text feature is inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
 ***********************************************************************************************/
 
-import React from "react";
-// import ReactDOM from "react-dom";
-import { Intent, Position, Toaster, TagInput, Slider } from "@blueprintjs/core";
+import { Intent, Position, Toaster } from "@blueprintjs/core";
 
 import {
   addListenerOnZoom,
@@ -12,7 +10,6 @@ import {
   cleanBlue,
   highlightBlockOnClick,
   initializeNavigation,
-  insertBionicNode,
   navigateToBlock,
   onClickToCleanBlue,
   readOnlyPageTitle,
@@ -27,6 +24,15 @@ import {
   disconnectAllObservers,
   onKeydown,
 } from "./observers";
+import {
+  SampleTextForBionic,
+  SampleTextForReadonly,
+  fixationSlider,
+  letterSpacingSlider,
+  lineHeightSlider,
+  saccadeSlider,
+} from "./components";
+import { reduceToFixedValue } from "./utils";
 
 var buttonInTopBar, unfocusedOpacity;
 
@@ -35,6 +41,23 @@ export var letterSpacing,
   lineHeight = 0;
 export var isOn = false;
 export var isNewView = true;
+
+export const globalVarGetter = (varName, value) => {
+  switch (varName) {
+    case "fixation":
+      fixation = value;
+      break;
+    case "saccade":
+      saccade = value;
+      break;
+    case "letterSpacing":
+      letterSpacing = value;
+      break;
+    case "lineHeight":
+      lineHeight = value;
+      break;
+  }
+};
 
 export const ROAM_APP_ELT = document.querySelector(".roam-app");
 const IS_ON_SMARTPHONE =
@@ -123,7 +146,9 @@ export default {
     const wrappedLineHeightSlider = () => lineHeightSlider({ extensionAPI });
     const wrappedFixationSlider = () => fixationSlider({ extensionAPI });
     const wrappedSaccadeSlider = () => saccadeSlider({ extensionAPI });
-    // const wrappedBlueprintTagInput = () => blueprintTagInput({ extensionAPI });
+    const wrappedSampleTextForReadOnly = () => SampleTextForReadonly();
+    const wrappedSampleTextForBionic = () => SampleTextForBionic();
+    // const wrappedBlueprintTagInput = () => blueprintTagInput({ extensonAPI });
 
     const panelConfig = {
       tabTitle: "Reading mode",
@@ -160,10 +185,13 @@ export default {
           },
         },
         {
-          id: "textForTest1-setting",
-          name: "Example of text to which parameters are applied",
-          description:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem enim veritatis commodi vel similique consequatur animi adipisci deleniti soluta unde?",
+          id: "sampleText1-setting",
+          name: "Sample text",
+          description: "whose style changes when the above sliders are handled",
+          action: {
+            type: "reactComponent",
+            component: wrappedSampleTextForReadOnly,
+          },
         },
         {
           id: "navigation-setting",
@@ -247,10 +275,13 @@ export default {
           action: { type: "reactComponent", component: wrappedSaccadeSlider },
         },
         {
-          id: "textForTest2-setting",
-          name: "Example of text to which parameters are applied",
-          description:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem enim veritatis commodi vel similique consequatur animi adipisci deleniti soluta unde?",
+          id: "sampleText2-setting",
+          name: "Sample text",
+          description: "whose style changes when the above sliders are handled",
+          action: {
+            type: "reactComponent",
+            component: wrappedSampleTextForBionic,
+          },
         },
         {
           id: "button-setting",
@@ -470,161 +501,12 @@ export default {
     console.log("Reading mode extension loaded.");
   },
   onunload: () => {
-    modesArray.forEach((mode) => (mode.isOn = false));
+    modesArray.forEach((mode) => mode.set("off"));
     onToggleOf(true);
-    // disconnectAllObservers();
     if (buttonInTopBar) buttonToggle();
     console.log("Reading mode extension unloaded.");
   },
 };
-
-function fixationSlider({ extensionAPI }) {
-  const [sliderValue, setSliderValue] = React.useState(
-    extensionAPI.settings.get("fixation-setting")
-  );
-  return React.createElement(Slider, {
-    className: "reading-mode-slider",
-    min: 0,
-    max: 100,
-    stepSize: 5,
-    labelStepSize: 25,
-    value: sliderValue,
-    onChange: (value) => {
-      setSliderValue(value);
-      extensionAPI.settings.set("fixation-setting", value);
-      fixation = value;
-      applyToTestText();
-    },
-  });
-}
-
-function saccadeSlider({ extensionAPI }) {
-  const [sliderValue, setSliderValue] = React.useState(
-    extensionAPI.settings.get("saccade-setting")
-  );
-  return React.createElement(Slider, {
-    className: "reading-mode-slider",
-    min: 0,
-    max: 5,
-    stepSize: 1,
-    labelStepSize: 1,
-    value: sliderValue,
-    onChange: (value) => {
-      setSliderValue(value);
-      extensionAPI.settings.set("saccade-setting", value);
-      saccade = value;
-      applyToTestText();
-    },
-  });
-}
-
-function letterSpacingSlider({ extensionAPI }) {
-  const [sliderValue, setSliderValue] = React.useState(
-    extensionAPI.settings.get("letterSpacing-setting")
-  );
-  return React.createElement(Slider, {
-    className: "reading-mode-slider",
-    min: 0,
-    max: 0.1,
-    stepSize: 0.02,
-    labelStepSize: 0.1,
-    value: sliderValue,
-    onChange: (value) => {
-      setSliderValue(value);
-      let oldLetterSpacing = letterSpacing;
-      extensionAPI.settings.set("letterSpacing-setting", value);
-      letterSpacing = reduceToFixedValue(value, 0, 2);
-      // value < 0.04 ? 0 : value.toFixed(2);
-      if (isOn) {
-        if (letterSpacing != 0)
-          ROAM_APP_ELT.classList.remove(
-            `read-ls-${oldLetterSpacing.toString().replace(".", "")}`
-          );
-        if (letterSpacing != 0)
-          ROAM_APP_ELT.classList.add(
-            `read-ls-${letterSpacing.toString().replace(".", "")}`
-          );
-      }
-      applyToTestText();
-    },
-  });
-}
-
-function lineHeightSlider({ extensionAPI }) {
-  const [sliderValue, setSliderValue] = React.useState(
-    extensionAPI.settings.get("lineHeight-setting")
-  );
-  return React.createElement(Slider, {
-    className: "reading-mode-slider",
-    min: 1.5,
-    max: 2,
-    stepSize: 0.1,
-    labelStepSize: 0.5,
-    value: sliderValue,
-    onChange: (value) => {
-      setSliderValue(value);
-      let oldLineHeight = lineHeight;
-      extensionAPI.settings.set("lineHeight-setting", value);
-      lineHeight = reduceToFixedValue(value, 1.5, 1);
-      // value < 1.59 ? 1.5 : value.toFixed(1);
-      if (isOn) {
-        if (oldLineHeight != 1.5)
-          ROAM_APP_ELT.classList.remove(
-            `read-lh-${oldLineHeight.toString().replace(".", "")}`
-          );
-        if (lineHeight != 1.5)
-          ROAM_APP_ELT.classList.add(
-            `read-lh-${lineHeight.toString().replace(".", "")}`
-          );
-      }
-      applyToTestText();
-    },
-  });
-}
-
-function reduceToFixedValue(value, min, fixedTo) {
-  return value < min + 0.01 ? min : value.toFixed(fixedTo);
-}
-
-function applyToTestText() {
-  let elt = document.querySelectorAll(".rm-settings-panel h4");
-  let testTextElt = [];
-  for (var i = 0; i < elt.length; i++) {
-    if (
-      elt[i].innerText === "Example of text to which parameters are applied"
-    ) {
-      testTextElt.push(elt[i]);
-      if (testTextElt.length == 2) break;
-    }
-  }
-  if (testTextElt.length != 0) {
-    testTextElt.forEach((text, index) => {
-      text.nextElementSibling.style.letterSpacing = `${letterSpacing}rem`;
-      text.nextElementSibling.style.wordSpacing = `${letterSpacing}rem`;
-      text.nextElementSibling.style.lineHeight = `${lineHeight}rem`;
-      if (index == 1) removeBionicNodes(text.nextElementSibling);
-      if (index == 1) insertBionicNode(text.nextElementSibling.childNodes[0]);
-    });
-  }
-}
-
-// function blueprintTagInput({ extensionAPI }) {
-//   const [tagInputValues, setTagInpuValues] = React.useState(
-//     extensionAPI.settings.get("taginput")
-//   );
-//   return React.createElement(TagInput, {
-//     className: "tag-input",
-//     fill: true,
-//     leftIcon: "lock",
-//     placeholder: "Enter page/tag name separated by commas...",
-//     // tagProps: { minimal: true },
-//     values: tagInputValues,
-//     onChange: (values) => {
-//       setTagInpuValues(values);
-//       console.log(values);
-//     },
-//   });
-// }
 
 function buttonToggle() {
   var nameToUse = "reading-mode",
@@ -733,7 +615,7 @@ async function applyEnabledModes(refresh = false) {
     }
     let elt = document.querySelectorAll(".rm-block-text");
     if (!refresh) {
-      console.log("Connect observers");
+      // console.log("Connect observers");
       connectObservers();
     }
     applyModesToSelection(elt);
@@ -768,7 +650,7 @@ export function autoToggleWhenBrowsing() {
 
 export function onToggleOf() {
   let elt = document.querySelectorAll(".rm-block-text");
-  if (!readOnlyMode.isOn && !bionicMode.isOn) {
+  if (!readOnlyMode.isOn && !bionicMode.isOn && !selectOnClickMode.isOn) {
     disconnectAllObservers();
   }
   if (!readOnlyMode.isOn) {

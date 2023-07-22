@@ -38,10 +38,12 @@ export function connectObservers(logPage = null) {
 }
 
 export function addObserver(element, callback, options, name) {
-  let myObserver = new MutationObserver(callback);
-  myObserver.observe(element, options);
+  if (!runners[name]) {
+    let myObserver = new MutationObserver(callback);
+    myObserver.observe(element, options);
 
-  runners[name] = [myObserver];
+    runners[name] = [myObserver];
+  }
 }
 
 export function disconnectAllObservers() {
@@ -70,7 +72,7 @@ function onSidebarOpen(mutation) {
         ) {
           let txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
           applyModesToSelection(txtElts);
-          console.log("Sidebar opened");
+          // console.log("Sidebar opened");
           return;
         }
       }
