@@ -19,8 +19,8 @@ const SampleTextComponent = ({ nbOfSliderMax }) => {
     const updateStyle = () => {
       setStyle({
         padding: "5px",
-        borderRadius: "3px",
         paddingLeft: "20px",
+        borderRadius: "3px",
         // Roam text styling (Native & Roam Studio)
         fontFamily: 'var(--ff-main, "Inter",sans-serif)',
         fontSize: "var(--fs-main, 14px)",

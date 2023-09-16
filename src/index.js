@@ -74,8 +74,14 @@ const AppToaster = Toaster.create({
 const toggleWaySet = new Set([
   "With command palette only",
   "With topbar button",
-  "Always",
+  "On graph load + button",
+  "On graph load + command only",
 ]);
+
+const normalizeToggleWayV4 = (way) => {
+  if (way === "Always") return toggleWaySet[2];
+  return way;
+};
 class Mode {
   constructor() {
     this.onLoad = false;
@@ -91,6 +97,12 @@ class Mode {
         break;
       case toggleWayArray[2]:
         this.onLoad = true;
+        this.onButton = true;
+        this.isOn = true;
+        break;
+      case toggleWayArray[3]:
+        this.onLoad = true;
+        this.isOn = true;
         break;
       default:
         this.onButton = false;
@@ -119,6 +131,13 @@ var modesArray = [
   focusMode,
   navMode,
 ];
+const oneModeIsOnAtLeast = () => {
+  let oneModeIsTrue = false;
+  modesArray.forEach((mode) => {
+    if (mode.isOn) oneModeIsTrue = true;
+  });
+  return oneModeIsTrue;
+};
 
 function setSmartphoneSettings(modesOn) {
   switch (modesOn) {
@@ -162,6 +181,7 @@ export default {
             items: [...toggleWaySet],
             onChange: (evt) => {
               readOnlyMode.setToggleWay(evt);
+              updateAfterSettingsChange();
             },
           },
         },
@@ -203,6 +223,7 @@ export default {
             items: [...toggleWaySet],
             onChange: (evt) => {
               navMode.setToggleWay(evt);
+              updateAfterSettingsChange();
             },
           },
         },
@@ -215,6 +236,7 @@ export default {
             items: [...toggleWaySet],
             onChange: (evt) => {
               selectOnClickMode.setToggleWay(evt);
+              updateAfterSettingsChange();
             },
           },
         },
@@ -228,6 +250,7 @@ export default {
             items: [...toggleWaySet],
             onChange: (evt) => {
               focusMode.setToggleWay(evt);
+              updateAfterSettingsChange();
             },
           },
         },
@@ -337,7 +360,9 @@ export default {
       extensionAPI.settings.set("readonly-setting", "With topbar button");
       readOnlyMode.setToggleWay("With topbar button");
     } else
-      readOnlyMode.setToggleWay(extensionAPI.settings.get("readonly-setting"));
+      readOnlyMode.setToggleWay(
+        normalizeToggleWayV4(extensionAPI.settings.get("readonly-setting"))
+      );
     readOnlyMode.initialize();
     if (extensionAPI.settings.get("letterSpacing-setting") == null) {
       letterSpacing = 0;
@@ -362,7 +387,9 @@ export default {
       extensionAPI.settings.set("navigation-setting", "With topbar button");
       navMode.setToggleWay("With topbar button");
     } else
-      navMode.setToggleWay(extensionAPI.settings.get("navigation-setting"));
+      navMode.setToggleWay(
+        normalizeToggleWayV4(extensionAPI.settings.get("navigation-setting"))
+      );
     navMode.initialize();
 
     if (extensionAPI.settings.get("select-setting") == null) {
@@ -370,14 +397,17 @@ export default {
       selectOnClickMode.setToggleWay("With command palette only");
     } else
       selectOnClickMode.setToggleWay(
-        extensionAPI.settings.get("select-setting")
+        normalizeToggleWayV4(extensionAPI.settings.get("select-setting"))
       );
     selectOnClickMode.initialize();
 
     if (extensionAPI.settings.get("focus-setting") == null) {
       extensionAPI.settings.set("focus-setting", "With command palette only");
       focusMode.setToggleWay("With command palette only");
-    } else focusMode.setToggleWay(extensionAPI.settings.get("focus-setting"));
+    } else
+      focusMode.setToggleWay(
+        normalizeToggleWayV4(extensionAPI.settings.get("focus-setting"))
+      );
     focusMode.initialize();
     if (extensionAPI.settings.get("focusOpacity-setting") == null) {
       extensionAPI.settings.set("focusOpacity-setting", "0.1");
@@ -390,7 +420,10 @@ export default {
     if (extensionAPI.settings.get("bionic-setting") == null) {
       extensionAPI.settings.set("button-setting", "With command palette only");
       bionicMode.setToggleWay("With command palette only");
-    } else bionicMode.setToggleWay(extensionAPI.settings.get("bionic-setting"));
+    } else
+      bionicMode.setToggleWay(
+        normalizeToggleWayV4(extensionAPI.settings.get("bionic-setting"))
+      );
     bionicMode.initialize();
     if (extensionAPI.settings.get("fixation-setting") == null) {
       fixation = 50;
@@ -556,18 +589,11 @@ function onClickOnTopbarButton() {
     if (navMode.onButton) navMode.isOn = true;
     applyEnabledModes();
   } else {
-    if (readOnlyMode.onButton || readOnlyMode.isOn) readOnlyMode.isOn = false;
-    if (bionicMode.onButton || (bionicMode.onLoad && bionicMode.isOn))
-      bionicMode.isOn = false;
-    if (
-      selectOnClickMode.onButton ||
-      (selectOnClickMode.onLoad && selectOnClickMode.isOn)
-    )
-      selectOnClickMode.isOn = false;
-    if (focusMode.onButton || (focusMode.onLoad && focusMode.isOn))
-      focusMode.isOn = false;
-    if (navMode.onButton || (navMode.onLoad && navMode.isOn))
-      navMode.isOn = false;
+    if (readOnlyMode.onButton) readOnlyMode.isOn = false;
+    if (bionicMode.onButton) bionicMode.isOn = false;
+    if (selectOnClickMode.onButton) selectOnClickMode.isOn = false;
+    if (focusMode.onButton) focusMode.isOn = false;
+    if (navMode.onButton) navMode.isOn = false;
     onToggleOf();
   }
 }
@@ -586,8 +612,8 @@ function toggleButtonIcon() {
   }
 }
 
-function updateAfterSettingsChange(mode, status) {
-  toasterOnModeToggle(mode, status);
+function updateAfterSettingsChange(mode = null, status = null) {
+  if (mode) toasterOnModeToggle(mode, status);
   onToggleOf();
   applyEnabledModes();
 }
@@ -614,16 +640,15 @@ async function applyEnabledModes(refresh = false) {
       );
     }
     let elt = document.querySelectorAll(".rm-block-text");
-    if (!refresh) {
-      // console.log("Connect observers");
-      connectObservers();
-    }
     applyModesToSelection(elt);
     if (selectOnClickMode.isOn && !refresh) {
       document.addEventListener("keydown", onKeydown);
       document
         .querySelector(".rm-article-wrapper")
         .addEventListener("click", onClickToCleanBlue);
+    }
+    if (!refresh) {
+      connectObservers();
     }
     if (selectOnClickMode.isOn || readOnlyMode.isOn) addListenerOnZoom();
   }
@@ -637,7 +662,7 @@ async function applyEnabledModes(refresh = false) {
 }
 
 export function autoToggleWhenBrowsing() {
-  if (isOn) {
+  if (isOn || oneModeIsOnAtLeast()) {
     setTimeout(async () => {
       isNewView = true;
       // let elt = document.querySelectorAll(".rm-block-text");
@@ -681,5 +706,6 @@ export function onToggleOf() {
     removeChevronsListener();
     removeChevrons();
   }
-  window.removeEventListener("popstate", autoToggleWhenBrowsing);
+  if (!oneModeIsOnAtLeast())
+    window.removeEventListener("popstate", autoToggleWhenBrowsing);
 }
