@@ -4,7 +4,7 @@ Read-only, Navigation controls, Focus mode, Click-to-select (instead of edit) an
 
 ![Reading modes readme](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/d1bb6d4e-c534-4ffa-b224-daf1fda7c176)
 
-For each mode, you can choose to enable it only via the command palette, or via the topbar button, or when the graph is loaded (which can be useful for sensitive data). Read-only and navigation controls can also be automatically enabled on mobile only.
+For each mode, you can choose to enable it only via the command palette, or via the topbar button, or when the graph is loaded (which can be useful for sensitive data) In the latter case, you can choose to enable/disable the mode by clicking on the button, or make it independent of the button. Read-only and navigation controls can also be automatically enabled on mobile only.
 
 ### Read-only
 
