@@ -582,18 +582,28 @@ function onClickOnTopbarButton() {
   isOn = !isOn;
   toggleButtonIcon();
   if (isOn) {
-    if (readOnlyMode.onButton) readOnlyMode.isOn = true;
+    if (
+      readOnlyMode.onButton ||
+      (IS_ON_SMARTPHONE && readOnlyMode.onSmartphone)
+    )
+      readOnlyMode.isOn = true;
     if (bionicMode.onButton) bionicMode.isOn = true;
     if (selectOnClickMode.onButton) selectOnClickMode.isOn = true;
     if (focusMode.onButton) focusMode.isOn = true;
-    if (navMode.onButton) navMode.isOn = true;
+    if (navMode.onButton || (IS_ON_SMARTPHONE && navMode.onSmartphone))
+      navMode.isOn = true;
     applyEnabledModes();
   } else {
-    if (readOnlyMode.onButton) readOnlyMode.isOn = false;
+    if (
+      readOnlyMode.onButton ||
+      (IS_ON_SMARTPHONE && readOnlyMode.onSmartphone)
+    )
+      readOnlyMode.isOn = false;
     if (bionicMode.onButton) bionicMode.isOn = false;
     if (selectOnClickMode.onButton) selectOnClickMode.isOn = false;
     if (focusMode.onButton) focusMode.isOn = false;
-    if (navMode.onButton) navMode.isOn = false;
+    if (navMode.onButton || (IS_ON_SMARTPHONE && navMode.onSmartphone))
+      navMode.isOn = false;
     onToggleOf();
   }
 }
