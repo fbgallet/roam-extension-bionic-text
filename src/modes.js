@@ -20,11 +20,19 @@ export function applyModesToSelection(elt) {
   }
   if (elt) {
     if (readOnlyMode.isOn) readOnlyInKanban();
+
+    // Optimize: check mode states once before loop
+    const shouldApplyBionic = bionicMode.isOn;
+    const shouldApplyReadOnly = readOnlyMode.isOn;
+    const shouldApplySelectOnClick = selectOnClickMode.isOn;
+
+    // Single loop with combined mode checks for better performance
     for (let i = 0; i < elt.length; i++) {
-      //console.log(elt[i]);
-      if (bionicMode.isOn) processHtmlElement(elt[i]);
-      if (readOnlyMode.isOn) readOnly(elt[i]);
-      if (selectOnClickMode.isOn) prepareBlockToSelectOnClick(elt[i]);
+      const element = elt[i];
+      //console.log(element);
+      if (shouldApplyBionic) processHtmlElement(element);
+      if (shouldApplyReadOnly) readOnly(element);
+      if (shouldApplySelectOnClick) prepareBlockToSelectOnClick(element);
     }
   }
 }
@@ -137,15 +145,15 @@ export function onClickToCleanBlue(e) {
   if (e.target === document.querySelector(".rm-article-wrapper")) cleanBlue();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Bionic mode
-////////////////////////////////////////////////////////////////////////////////
+/********************************************************************************************** 
+  Bionic text feature is inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
+***********************************************************************************************/
 
 export function processHtmlElement(el) {
-  if (el.innerHTML.includes("<bionic>") == false) {
+  if (el.innerHTML.includes("<bionic>") === false) {
     let nodes = el.firstChild.childNodes;
     //console.log(nodes);
-    if (nodes.length != 0) {
+    if (nodes.length !== 0) {
       for (let j = 0; j < nodes.length; j++) {
         insertBionicNode(nodes[j]);
       }
@@ -155,7 +163,7 @@ export function processHtmlElement(el) {
 
 export function insertBionicNode(node) {
   //console.log(node);
-  if (node.nodeType == 3) {
+  if (node.nodeType === 3) {
     // nodeType 3 is Text
     let bionicChild = processTextNode(node.nodeValue);
     node.parentNode.replaceChild(bionicChild, node);
@@ -170,7 +178,7 @@ export function insertBionicNode(node) {
         break;
       case "bp3-popover-wrapper": // block ref or alias
         node = node.childNodes[0].childNodes[0].childNodes[0];
-        if (node.nodeType != 3) {
+        if (node.nodeType !== 3) {
           // block ref
           node = node.childNodes;
           for (let i = 0; i < node.length; i++) {
@@ -196,7 +204,7 @@ export function insertBionicNode(node) {
               node = node.childNodes[1].childNodes[0];
               break;
             default:
-              if (node.parentElement.className == "rm-bq")
+              if (node.parentElement.className === "rm-bq")
                 node = node.childNodes[0]; // quote
               else return;
           }
@@ -206,33 +214,45 @@ export function insertBionicNode(node) {
   }
 }
 
-function processTextNode(text, node) {
-  let splitText = text.split(" ");
+function sanitizeText(text) {
+  // Sanitize input to prevent XSS - ensure we're only working with safe text content
+  if (typeof text !== "string") return "";
+  // Remove any potential HTML/script content by validating it's plain text
+  return text.replace(/[<>]/g, "");
+}
+
+function processTextNode(text) {
+  // Sanitize input text to prevent XSS vulnerabilities
+  const sanitizedText = sanitizeText(text);
+  if (!sanitizedText) return document.createTextNode("");
+
+  let splitText = sanitizedText.split(" ");
   let e = document.createElement("bionic");
   let spaceShift = 0;
+
   for (let i = 0; i < splitText.length; i++) {
     let t;
-    if (i == 0 || (i + spaceShift) % saccade == 0) {
+    if (i === 0 || (i + spaceShift) % saccade === 0) {
       let word = splitText[i];
-      if (word != "") {
+      if (word !== "") {
         let midIndex = getmiddleIndex(word);
         let b = document.createElement("b");
         let boldPart = word.slice(0, midIndex);
         b.textContent = boldPart;
         e.appendChild(b);
         let notBoldPart = word.slice(midIndex) + " ";
-        if (i == splitText.length - 1) notBoldPart = notBoldPart.slice(0, -1);
+        if (i === splitText.length - 1) notBoldPart = notBoldPart.slice(0, -1);
         t = document.createTextNode(notBoldPart);
       } else {
         word += " ";
-        if (i == splitText.length - 1) word = word.slice(0, -1);
+        if (i === splitText.length - 1) word = word.slice(0, -1);
         t = document.createTextNode(word);
         spaceShift++;
       }
       e.appendChild(t);
     } else {
       t = splitText[i] + " ";
-      if (i == splitText.length - 1) t = t.slice(0, -1);
+      if (i === splitText.length - 1) t = t.slice(0, -1);
       e.appendChild(document.createTextNode(t));
     }
   }
@@ -274,39 +294,47 @@ const rightChevron = document.createElement("span");
 const bottomChevron = document.createElement("span");
 
 export async function initializeNavigation() {
-  chevrons.classList.add("chevrons");
-  topChevron.title = "Previous sibling";
-  topChevron.classList.add("chevron", "top-chevron");
-  topChevron.innerText = "〈";
-  middleDiv.classList.add("middle");
-  leftChevron.title = "Parent";
-  leftChevron.classList.add("chevron", "left-chevron");
-  leftChevron.innerText = "〈";
-  rightChevron.title = "First child";
-  rightChevron.classList.add("chevron", "right-chevron");
-  rightChevron.innerText = "〉";
-  bottomChevron.title = "Next Sibling";
-  bottomChevron.classList.add("chevron", "bottom-chevron");
-  bottomChevron.innerText = "〉";
+  try {
+    chevrons.classList.add("chevrons");
+    topChevron.title = "Previous sibling";
+    topChevron.classList.add("chevron", "top-chevron");
+    topChevron.innerText = "〈";
+    middleDiv.classList.add("middle");
+    leftChevron.title = "Parent";
+    leftChevron.classList.add("chevron", "left-chevron");
+    leftChevron.innerText = "〈";
+    rightChevron.title = "First child";
+    rightChevron.classList.add("chevron", "right-chevron");
+    rightChevron.innerText = "〉";
+    bottomChevron.title = "Next Sibling";
+    bottomChevron.classList.add("chevron", "bottom-chevron");
+    bottomChevron.innerText = "〉";
 
-  chevrons.appendChild(topChevron);
-  middleDiv.appendChild(leftChevron);
-  middleDiv.appendChild(rightChevron);
-  chevrons.appendChild(middleDiv);
-  chevrons.appendChild(bottomChevron);
-  document.querySelector(".roam-app").appendChild(chevrons);
+    chevrons.appendChild(topChevron);
+    middleDiv.appendChild(leftChevron);
+    middleDiv.appendChild(rightChevron);
+    chevrons.appendChild(middleDiv);
+    chevrons.appendChild(bottomChevron);
+    document.querySelector(".roam-app").appendChild(chevrons);
 
-  addChevronsListener();
-  await updateNavigation();
+    addChevronsListener();
+    await updateNavigation();
+  } catch (error) {
+    console.error("Failed to initialize navigation:", error);
+  }
 }
 
 export async function updateNavigation() {
-  topViewBlockContext = null;
-  topViewBlockContext = new BlockContext(
-    await window.roamAlphaAPI.ui.mainWindow.getOpenPageOrBlockUid()
-  );
-  // console.log(topViewBlockContext);
-  if (navMode.isOn) updateChevronsElts();
+  try {
+    topViewBlockContext = null;
+    topViewBlockContext = new BlockContext(
+      await window.roamAlphaAPI.ui.mainWindow.getOpenPageOrBlockUid()
+    );
+    // console.log(topViewBlockContext);
+    if (navMode.isOn) updateChevronsElts();
+  } catch (error) {
+    console.error("Failed to update navigation:", error);
+  }
 }
 
 export function updateChevronsElts() {
@@ -379,35 +407,71 @@ export function removeChevrons() {
 }
 
 export async function navigateToBlock(direction) {
-  if (!navMode.isOn) await updateNavigation();
-  let targetUid;
-  switch (direction) {
-    case "top":
-      targetUid = topViewBlockContext.hasPreviousSibling
-        ? topViewBlockContext.getPreviousSibling()
-        : topViewBlockContext.getParent();
-      break;
-    case "bottom":
-      targetUid = topViewBlockContext.nextBlock;
-      break;
-    case "right":
-      targetUid = topViewBlockContext.firstChild;
-      break;
-    case "left":
-      targetUid = topViewBlockContext.getParent();
-      break;
+  try {
+    if (!navMode.isOn) await updateNavigation();
+    let targetUid;
+    switch (direction) {
+      case "top":
+        targetUid = topViewBlockContext.hasPreviousSibling
+          ? topViewBlockContext.getPreviousSibling()
+          : topViewBlockContext.getParent();
+        break;
+      case "bottom":
+        targetUid = topViewBlockContext.nextBlock;
+        break;
+      case "right":
+        targetUid = topViewBlockContext.firstChild;
+        break;
+      case "left":
+        targetUid = topViewBlockContext.getParent();
+        break;
+    }
+    if (targetUid) {
+      if (navMode.isOn)
+        animChevron(document.querySelector(`.${direction}-chevron`), direction);
+      window.roamAlphaAPI.ui.mainWindow.openBlock({
+        block: { uid: targetUid },
+      });
+    }
+  } catch (error) {
+    console.error("Failed to navigate to block:", error);
   }
-  if (targetUid) {
-    if (navMode.isOn)
-      animChevron(document.querySelector(`.${direction}-chevron`), direction);
-    window.roamAlphaAPI.ui.mainWindow.openBlock({
-      block: { uid: targetUid },
-    });
+}
+
+// BlockContext cache to improve performance
+const blockContextCache = new Map();
+const CACHE_MAX_SIZE = 50; // Limit cache size to prevent memory issues
+const CACHE_TTL = 5000; // Time to live: 5 seconds
+
+function getCachedBlockContext(uid) {
+  const cached = blockContextCache.get(uid);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.context;
   }
+  return null;
+}
+
+function setCachedBlockContext(uid, context) {
+  // Clear old cache entries if size exceeds limit
+  if (blockContextCache.size >= CACHE_MAX_SIZE) {
+    const firstKey = blockContextCache.keys().next().value;
+    blockContextCache.delete(firstKey);
+  }
+  blockContextCache.set(uid, {
+    context: context,
+    timestamp: Date.now(),
+  });
 }
 
 export class BlockContext {
   constructor(uid) {
+    // Check cache first for performance
+    const cached = getCachedBlockContext(uid);
+    if (cached) {
+      Object.assign(this, cached);
+      return;
+    }
+
     this.uid = uid;
     this.parent = getParentUID(uid);
     this.firstChild = getFirstChildUid(uid);
@@ -421,6 +485,9 @@ export class BlockContext {
     this.nextBlock = this.isPage ? null : this.getNextSibling();
     this.hasPreviousSibling =
       !this.isPage && this.order - 1 >= 0 ? true : false;
+
+    // Cache this instance
+    setCachedBlockContext(uid, this);
   }
   getNextSibling() {
     if (this.hasNextSibling) return this.siblings[this.order + 1].uid;
@@ -441,4 +508,9 @@ export class BlockContext {
     if (!this.isPage) return this.parent;
     return null;
   }
+}
+
+// Export function to clear cache when needed
+export function clearBlockContextCache() {
+  blockContextCache.clear();
 }

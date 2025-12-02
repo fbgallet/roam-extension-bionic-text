@@ -5,10 +5,26 @@ export var runners = {};
 export var refs = [];
 export var counters = [];
 
+// Throttle helper to limit function execution frequency
+let throttleTimeout = null;
+const throttle = (callback, delay = 100) => {
+  return (...args) => {
+    if (!throttleTimeout) {
+      callback(...args);
+      throttleTimeout = setTimeout(() => {
+        throttleTimeout = null;
+      }, delay);
+    }
+  };
+};
+
 export function connectObservers(logPage = null) {
+  // Apply throttling to the main page observer to improve performance
+  const throttledMainPageObserver = throttle(onMutationOnMainPage, 50);
+
   addObserver(
     document.getElementsByClassName("roam-app")[0],
-    onMutationOnMainPage,
+    throttledMainPageObserver,
     {
       childList: true,
       subtree: true,
@@ -65,9 +81,9 @@ function onSidebarOpen(mutation) {
     for (let i = 0; i < mutation.length; i++) {
       if (mutation[i].addedNodes.length > 0) {
         if (
-          mutation[i].addedNodes[0].className != "rm-resize-handle" &&
+          mutation[i].addedNodes[0].className !== "rm-resize-handle" &&
           mutation[i].addedNodes[0].id === "roam-right-sidebar-content" &&
-          mutation[i].addedNodes[0].innerText !=
+          mutation[i].addedNodes[0].innerText !==
             "Shift-click bidirectional links, blocks, or block references to open them here."
         ) {
           let txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
@@ -101,8 +117,8 @@ function onMutationOnMainPage(mutation) {
     for (let i = 0; i < mutation.length; i++) {
       if (
         mutation[i].addedNodes.length > 0 &&
-        mutation[i].target.localName != "span" &&
-        mutation[i].target.localName != "textarea"
+        mutation[i].target.localName !== "span" &&
+        mutation[i].target.localName !== "textarea"
       ) {
         if (mutation[0].addedNodes[0]?.classList?.contains("rm-block")) {
           //console.log("blocks expanded");
@@ -137,8 +153,8 @@ function onMutationOnMainPage(mutation) {
           applyModesToSelection(txtElts);
           return;
         } else if (
-          mutation.length == 2 &&
-          i == 1 &&
+          mutation.length === 2 &&
+          i === 1 &&
           mutation[0].removedNodes?.length > 0
         ) {
           //console.log("Checked or unchecked");
@@ -160,7 +176,7 @@ export function onKeydown(e) {
       document.querySelector(".block-highlight-blue")
     ) {
       let selection = window.getSelection();
-      if (selection && selection.anchorOffset != selection.extentOffset) return;
+      if (selection && selection.anchorOffset !== selection.extentOffset) return;
       let highlighted = Array.from(
         document.querySelectorAll(".block-highlight-blue")
       );
@@ -173,8 +189,17 @@ export function onKeydown(e) {
           concatened + text.querySelector(".rm-block-text").innerText + "\n",
         ""
       );
-      console.log("Copied to clipbard:", highlightedText);
-      navigator.clipboard.writeText(highlightedText.slice(0, -1));
+      console.log("Copied to clipboard:", highlightedText);
+
+      // Add error handling for clipboard operations
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(highlightedText.slice(0, -1))
+          .catch((error) => {
+            console.error("Failed to copy to clipboard:", error);
+          });
+      } else {
+        console.warn("Clipboard API not available");
+      }
     }
   }
 }

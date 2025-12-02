@@ -1,4 +1,5 @@
 node_modules
-extension.js
 main.js
+extension.js
 .env
+*.backup

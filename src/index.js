@@ -1,7 +1,3 @@
-/********************************************************************************************** 
-  Bionic text feature is inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
-***********************************************************************************************/
-
 import { Intent, Position, Toaster } from "@blueprintjs/core";
 
 import {
@@ -34,13 +30,13 @@ import {
 } from "./components";
 import { reduceToFixedValue } from "./utils";
 
-var buttonInTopBar, unfocusedOpacity;
+let buttonInTopBar, unfocusedOpacity;
 
-export var fixation, saccade;
-export var letterSpacing,
+export let fixation, saccade;
+export let letterSpacing,
   lineHeight = 0;
-export var isOn = false;
-export var isNewView = true;
+export let isOn = false;
+export let isNewView = true;
 
 export const globalVarGetter = (varName, value) => {
   switch (varName) {
@@ -61,9 +57,11 @@ export const globalVarGetter = (varName, value) => {
 
 export const ROAM_APP_ELT = document.querySelector(".roam-app");
 const IS_ON_SMARTPHONE =
-  window.roamAlphaAPI.platform.isTouchDevice ||
-  window.roamAlphaAPI.platform.isMobileApp ||
-  window.matchMedia("(max-width:1024px)").matches;
+  !window.roamAlphaAPI.platform.isDesktop &&
+  !window.roamAlphaAPI.platform.isPC &&
+  (window.roamAlphaAPI.platform.isTouchDevice ||
+    window.roamAlphaAPI.platform.isMobileApp ||
+    window.roamAlphaAPI.platform.isIOS);
 
 const AppToaster = Toaster.create({
   className: "color-toaster",
@@ -114,30 +112,25 @@ class Mode {
       this.isOn = true;
   }
   set(status) {
-    if (status == "on") this.isOn = true;
-    if (status == "off") this.isOn = false;
+    if (status === "on") this.isOn = true;
+    if (status === "off") this.isOn = false;
   }
 }
 
-export var bionicMode = new Mode(),
+export let bionicMode = new Mode(),
   readOnlyMode = new Mode(),
   selectOnClickMode = new Mode(),
   focusMode = new Mode(),
   navMode = new Mode();
-var modesArray = [
+let modesArray = [
   bionicMode,
   readOnlyMode,
   selectOnClickMode,
   focusMode,
   navMode,
 ];
-const oneModeIsOnAtLeast = () => {
-  let oneModeIsTrue = false;
-  modesArray.forEach((mode) => {
-    if (mode.isOn) oneModeIsTrue = true;
-  });
-  return oneModeIsTrue;
-};
+// Optimize: use Array.some() for early exit when any mode is on
+const oneModeIsOnAtLeast = () => modesArray.some((mode) => mode.isOn);
 
 function setSmartphoneSettings(modesOn) {
   switch (modesOn) {
@@ -172,6 +165,17 @@ export default {
     const panelConfig = {
       tabTitle: "Reading mode",
       settings: [
+        {
+          id: "button-setting",
+          name: "Button",
+          description: "Display 🔓 button in the top bar or not:",
+          action: {
+            type: "switch",
+            onChange: (evt) => {
+              buttonToggle();
+            },
+          },
+        },
         {
           id: "readonly-setting",
           name: "Read Only",
@@ -307,26 +311,6 @@ export default {
           },
         },
         {
-          id: "button-setting",
-          name: "Button",
-          description: "Display 🔓 button in the top bar or not:",
-          action: {
-            type: "switch",
-            onChange: (evt) => {
-              buttonToggle();
-            },
-          },
-        },
-        // {
-        //   id: "taginput",
-        //   name: "React tag input",
-        //   description: "some description",
-        //   action: {
-        //     type: "reactComponent",
-        //     component: wrappedBlueprintTagInput,
-        //   },
-        // },
-        {
           id: "smartphone-setting",
           name: "On Smartphone",
           description: "Always enable:",
@@ -351,7 +335,7 @@ export default {
 
     extensionAPI.settings.panel.create(panelConfig);
 
-    if (extensionAPI.settings.get("smartphone-setting") == null) {
+    if (extensionAPI.settings.get("smartphone-setting") === null) {
       extensionAPI.settings.set("smartphone-setting", "Default");
     } else
       setSmartphoneSettings(extensionAPI.settings.get("smartphone-setting"));
@@ -364,7 +348,7 @@ export default {
         normalizeToggleWayV4(extensionAPI.settings.get("readonly-setting"))
       );
     readOnlyMode.initialize();
-    if (extensionAPI.settings.get("letterSpacing-setting") == null) {
+    if (extensionAPI.settings.get("letterSpacing-setting") === null) {
       letterSpacing = 0;
       extensionAPI.settings.set("letterSpacing-setting", letterSpacing);
     } else
@@ -373,7 +357,7 @@ export default {
         0,
         2
       );
-    if (extensionAPI.settings.get("lineHeight-setting") == null) {
+    if (extensionAPI.settings.get("lineHeight-setting") === null) {
       lineHeight = 1.5;
       extensionAPI.settings.set("lineHeight-setting", lineHeight);
     } else
@@ -383,7 +367,7 @@ export default {
         1
       );
 
-    if (extensionAPI.settings.get("navigation-setting") == null) {
+    if (extensionAPI.settings.get("navigation-setting") === null) {
       extensionAPI.settings.set("navigation-setting", "With topbar button");
       navMode.setToggleWay("With topbar button");
     } else
@@ -392,7 +376,7 @@ export default {
       );
     navMode.initialize();
 
-    if (extensionAPI.settings.get("select-setting") == null) {
+    if (extensionAPI.settings.get("select-setting") === null) {
       extensionAPI.settings.set("select-setting", "With command palette only");
       selectOnClickMode.setToggleWay("With command palette only");
     } else
@@ -401,7 +385,7 @@ export default {
       );
     selectOnClickMode.initialize();
 
-    if (extensionAPI.settings.get("focus-setting") == null) {
+    if (extensionAPI.settings.get("focus-setting") === null) {
       extensionAPI.settings.set("focus-setting", "With command palette only");
       focusMode.setToggleWay("With command palette only");
     } else
@@ -409,7 +393,7 @@ export default {
         normalizeToggleWayV4(extensionAPI.settings.get("focus-setting"))
       );
     focusMode.initialize();
-    if (extensionAPI.settings.get("focusOpacity-setting") == null) {
+    if (extensionAPI.settings.get("focusOpacity-setting") === null) {
       extensionAPI.settings.set("focusOpacity-setting", "0.1");
       unfocusedOpacity = "01";
     } else
@@ -417,7 +401,7 @@ export default {
         .get("focusOpacity-setting")
         .replace(".", "");
 
-    if (extensionAPI.settings.get("bionic-setting") == null) {
+    if (extensionAPI.settings.get("bionic-setting") === null) {
       extensionAPI.settings.set("button-setting", "With command palette only");
       bionicMode.setToggleWay("With command palette only");
     } else
@@ -425,15 +409,15 @@ export default {
         normalizeToggleWayV4(extensionAPI.settings.get("bionic-setting"))
       );
     bionicMode.initialize();
-    if (extensionAPI.settings.get("fixation-setting") == null) {
+    if (extensionAPI.settings.get("fixation-setting") === null) {
       fixation = 50;
       extensionAPI.settings.set("fixation-setting", fixation);
     } else fixation = extensionAPI.settings.get("fixation-setting");
-    if (extensionAPI.settings.get("saccade-setting") == null) {
+    if (extensionAPI.settings.get("saccade-setting") === null) {
       saccade = 1;
       extensionAPI.settings.set("saccade-setting", saccade);
     } else saccade = extensionAPI.settings.get("saccade-setting");
-    if (extensionAPI.settings.get("button-setting") == null) {
+    if (extensionAPI.settings.get("button-setting") === null) {
       extensionAPI.settings.set("button-setting", true);
       buttonInTopBar = true;
     } else buttonInTopBar = extensionAPI.settings.get("button-setting");
@@ -542,17 +526,17 @@ export default {
 };
 
 function buttonToggle() {
-  var nameToUse = "reading-mode",
+  let nameToUse = "reading-mode",
     bpIconName = "unlock",
     checkForButton = document.getElementById(nameToUse + "-icon");
   if (!checkForButton) {
-    var mainButton = document.createElement("span");
+    let mainButton = document.createElement("span");
     (mainButton.id = nameToUse + "-button"),
       mainButton.classList.add("bp3-popover-wrapper");
-    var spanTwo = document.createElement("span");
+    let spanTwo = document.createElement("span");
     spanTwo.classList.add("bp3-popover-target"),
       mainButton.appendChild(spanTwo);
-    var mainIcon = document.createElement("span");
+    let mainIcon = document.createElement("span");
     (mainIcon.id = nameToUse + "-icon"),
       mainIcon.classList.add(
         "bp3-icon-" + bpIconName,
@@ -561,7 +545,7 @@ function buttonToggle() {
         "bp3-small"
       ),
       spanTwo.appendChild(mainIcon);
-    var roamTopbar = document.getElementsByClassName("rm-topbar"),
+    let roamTopbar = document.getElementsByClassName("rm-topbar"),
       nextIconButton = roamTopbar[0].lastElementChild,
       flexDiv = document.createElement("div");
     (flexDiv.id = nameToUse + "-flex-space"),

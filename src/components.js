@@ -16,6 +16,8 @@ const SampleTextComponent = ({ nbOfSliderMax }) => {
   const pRef = useRef(null);
 
   useEffect(() => {
+    let timeoutId = null; // Store timeout ID for cleanup
+
     const updateStyle = () => {
       setStyle({
         padding: "5px",
@@ -41,23 +43,34 @@ const SampleTextComponent = ({ nbOfSliderMax }) => {
     updateStyle();
 
     const handleVariableChange = () => {
-      setTimeout(() => {
+      // Clear existing timeout to prevent memory leaks
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         updateStyle();
+        timeoutId = null;
       }, 200);
     };
 
-    document.querySelectorAll(".bp3-slider").forEach((slider, index) => {
-      if (index < nbOfSliderMax)
-        return slider.addEventListener("mouseup", handleVariableChange);
+    const sliders = document.querySelectorAll(".bp3-slider");
+    sliders.forEach((slider, index) => {
+      if (index < nbOfSliderMax) {
+        slider.addEventListener("mouseup", handleVariableChange);
+      }
     });
 
+    // Cleanup function to prevent memory leaks
     return () => {
-      document.querySelectorAll(".bp3-slider").forEach((slider, index) => {
-        if (index < nbOfSliderMax)
-          return slider.addEventListener("mouseup", handleVariableChange);
+      // Clear any pending timeout
+      if (timeoutId) clearTimeout(timeoutId);
+
+      // Remove event listeners
+      sliders.forEach((slider, index) => {
+        if (index < nbOfSliderMax) {
+          slider.removeEventListener("mouseup", handleVariableChange);
+        }
       });
     };
-  }, []);
+  }, [nbOfSliderMax]);
 
   //   <p style={style} ref={pRef}>
   //   • Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem enim
@@ -138,19 +151,16 @@ export function letterSpacingSlider({ extensionAPI }) {
     value: sliderValue,
     onChange: (value) => {
       setSliderValue(value);
-      let oldLetterSpacing = letterSpacing;
+      const oldLetterSpacing = letterSpacing;
       extensionAPI.settings.set("letterSpacing-setting", value);
       globalVarGetter("letterSpacing", reduceToFixedValue(value, 0, 2));
-      // value < 0.04 ? 0 : value.toFixed(2);
-      if (isOn) {
-        if (letterSpacing != 0)
-          ROAM_APP_ELT.classList.remove(
-            `read-ls-${oldLetterSpacing.toString().replace(".", "")}`
-          );
-        if (letterSpacing != 0)
-          ROAM_APP_ELT.classList.add(
-            `read-ls-${letterSpacing.toString().replace(".", "")}`
-          );
+
+      // Optimize: pre-compute class names and single condition check
+      if (isOn && letterSpacing !== 0) {
+        const oldClassName = `read-ls-${oldLetterSpacing.toString().replace(".", "")}`;
+        const newClassName = `read-ls-${letterSpacing.toString().replace(".", "")}`;
+        ROAM_APP_ELT.classList.remove(oldClassName);
+        ROAM_APP_ELT.classList.add(newClassName);
       }
       //applyToTestText();
     },
@@ -170,19 +180,20 @@ export function lineHeightSlider({ extensionAPI }) {
     value: sliderValue,
     onChange: (value) => {
       setSliderValue(value);
-      let oldLineHeight = lineHeight;
+      const oldLineHeight = lineHeight;
       extensionAPI.settings.set("lineHeight-setting", value);
       globalVarGetter("lineHeight", reduceToFixedValue(value, 1.5, 1));
-      // value < 1.59 ? 1.5 : value.toFixed(1);
+
+      // Optimize: pre-compute class names and single condition check
       if (isOn) {
-        if (oldLineHeight != 1.5)
-          ROAM_APP_ELT.classList.remove(
-            `read-lh-${oldLineHeight.toString().replace(".", "")}`
-          );
-        if (lineHeight != 1.5)
-          ROAM_APP_ELT.classList.add(
-            `read-lh-${lineHeight.toString().replace(".", "")}`
-          );
+        if (oldLineHeight !== 1.5) {
+          const oldClassName = `read-lh-${oldLineHeight.toString().replace(".", "")}`;
+          ROAM_APP_ELT.classList.remove(oldClassName);
+        }
+        if (lineHeight !== 1.5) {
+          const newClassName = `read-lh-${lineHeight.toString().replace(".", "")}`;
+          ROAM_APP_ELT.classList.add(newClassName);
+        }
       }
       //applyToTestText();
     },
