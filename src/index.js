@@ -1,3 +1,5 @@
+import React from "react";
+import ReactDOM from "react-dom";
 import { Intent, Position, Toaster } from "@blueprintjs/core";
 
 import {
@@ -20,17 +22,44 @@ import {
   disconnectAllObservers,
   onKeydown,
 } from "./observers";
+import { PopoverMenu } from "./components/PopoverMenu";
 import {
-  SampleTextForBionic,
+  FixationSlider,
+  SaccadeSlider,
+  LetterSpacingSlider,
+  LineHeightSlider,
+} from "./components/Sliders";
+import {
   SampleTextForReadonly,
-  fixationSlider,
-  letterSpacingSlider,
-  lineHeightSlider,
-  saccadeSlider,
-} from "./components";
+  SampleTextForBionic,
+} from "./components/SampleText";
 import { reduceToFixedValue } from "./utils";
 
-let buttonInTopBar, unfocusedOpacity;
+// Wrapped components for settings panel
+function wrappedFixationSlider(props) {
+  return React.createElement(FixationSlider, props);
+}
+function wrappedSaccadeSlider(props) {
+  return React.createElement(SaccadeSlider, props);
+}
+function wrappedLetterSpacingSlider(props) {
+  return React.createElement(LetterSpacingSlider, props);
+}
+function wrappedLineHeightSlider(props) {
+  return React.createElement(LineHeightSlider, props);
+}
+function wrappedSampleTextForReadOnly() {
+  return React.createElement(SampleTextForReadonly);
+}
+function wrappedSampleTextForBionic() {
+  return React.createElement(SampleTextForBionic);
+}
+
+let buttonInTopBar;
+export let unfocusedOpacity;
+export let focusHideUI = true;
+export let focusHideBlocks = true;
+export let selectedFontFamily = "";
 
 export let fixation, saccade;
 export let letterSpacing,
@@ -52,6 +81,18 @@ export const globalVarGetter = (varName, value) => {
     case "lineHeight":
       lineHeight = value;
       break;
+    case "unfocusedOpacity":
+      unfocusedOpacity = value;
+      break;
+    case "focusHideUI":
+      focusHideUI = value;
+      break;
+    case "focusHideBlocks":
+      focusHideBlocks = value;
+      break;
+    case "selectedFontFamily":
+      selectedFontFamily = value;
+      break;
   }
 };
 
@@ -70,41 +111,73 @@ const AppToaster = Toaster.create({
 });
 
 const toggleWaySet = new Set([
-  "With command palette only",
   "With topbar button",
   "On graph load + button",
   "On graph load + command only",
 ]);
 
+const toggleWayWithReadOnlySet = new Set([
+  "On demand",
+  "Toggle with Read only",
+  "On graph load",
+  "On graph load + Read only",
+]);
+
 const normalizeToggleWayV4 = (way) => {
-  if (way === "Always") return toggleWaySet[2];
+  if (way === "Always") return Array.from(toggleWaySet)[2];
+  return way;
+};
+
+// Migrate old settings to new "With Read only" options
+const migrateToReadOnlyToggleWay = (way) => {
+  if (way === "With command palette only") return "On demand";
+  if (way === "With topbar button") return "Toggle with Read only";
+  if (way === "On graph load + button") return "On graph load + Read only";
+  if (way === "On graph load + command only") return "On graph load";
+  if (way === "Always") return "On graph load + Read only";
   return way;
 };
 class Mode {
   constructor() {
     this.onLoad = false;
     this.onButton = false;
+    this.onReadOnly = false; // Tied to Read Only mode
     this.onSmartphone = false;
     this.isOn = false;
   }
-  setToggleWay(way) {
-    let toggleWayArray = Array.from(toggleWaySet);
+  setToggleWay(way, useReadOnlySet = false) {
+    const toggleArray = Array.from(
+      useReadOnlySet ? toggleWayWithReadOnlySet : toggleWaySet
+    );
+
+    // Reset flags
+    this.onButton = false;
+    this.onReadOnly = false;
+    this.onLoad = false;
+
     switch (way) {
-      case toggleWayArray[1]:
-        this.onButton = true;
+      case toggleArray[1]: // "With topbar button" or "With Read only"
+        if (useReadOnlySet) {
+          this.onReadOnly = true;
+        } else {
+          this.onButton = true;
+        }
         break;
-      case toggleWayArray[2]:
+      case toggleArray[2]: // "On graph load + button" or "On graph load + Read only"
         this.onLoad = true;
-        this.onButton = true;
+        this.isOn = true;
+        if (useReadOnlySet) {
+          this.onReadOnly = true;
+        } else {
+          this.onButton = true;
+        }
+        break;
+      case toggleArray[3]: // "On graph load + command only"
+        this.onLoad = true;
         this.isOn = true;
         break;
-      case toggleWayArray[3]:
-        this.onLoad = true;
-        this.isOn = true;
+      default: // "On demand"
         break;
-      default:
-        this.onButton = false;
-        this.onLoad = false;
     }
   }
   initialize() {
@@ -148,31 +221,18 @@ function setSmartphoneSettings(modesOn) {
 
 export default {
   onload: ({ extensionAPI }) => {
-    // if (!extensionAPI.settings.get("Slider"))
-    //   extensionAPI.settings.set("Slider", 20);
-    // if (!extensionAPI.settings.get("taginput"))
-    //   extensionAPI.settings.set("taginput", ["test"]);
-
-    const wrappedLetterSpacingSlider = () =>
-      letterSpacingSlider({ extensionAPI });
-    const wrappedLineHeightSlider = () => lineHeightSlider({ extensionAPI });
-    const wrappedFixationSlider = () => fixationSlider({ extensionAPI });
-    const wrappedSaccadeSlider = () => saccadeSlider({ extensionAPI });
-    const wrappedSampleTextForReadOnly = () => SampleTextForReadonly();
-    const wrappedSampleTextForBionic = () => SampleTextForBionic();
-    // const wrappedBlueprintTagInput = () => blueprintTagInput({ extensonAPI });
-
     const panelConfig = {
       tabTitle: "Reading mode",
       settings: [
         {
           id: "button-setting",
           name: "Button",
-          description: "Display 🔓 button in the top bar or not:",
+          description:
+            "Display 🔓 button in the top bar (needed for menu and customization):",
           action: {
             type: "switch",
             onChange: (evt) => {
-              buttonToggle();
+              buttonToggle(extensionAPI);
             },
           },
         },
@@ -189,34 +249,34 @@ export default {
             },
           },
         },
-        {
-          id: "letterSpacing-setting",
-          name: "Letter spacing",
-          description: "Set letter spacing in Read Only mode (+x rem):",
-          action: {
-            type: "reactComponent",
-            component: wrappedLetterSpacingSlider,
-          },
-        },
-        {
-          id: "lineHeight-setting",
-          name: "Line height",
-          description:
-            "Line height (more space between lines) in Read Only mode:",
-          action: {
-            type: "reactComponent",
-            component: wrappedLineHeightSlider,
-          },
-        },
-        {
-          id: "sampleText1-setting",
-          name: "Sample text",
-          description: "whose style changes when the above sliders are handled",
-          action: {
-            type: "reactComponent",
-            component: wrappedSampleTextForReadOnly,
-          },
-        },
+        // {
+        //   id: "letterSpacing-setting",
+        //   name: "Letter spacing",
+        //   description: "Set letter spacing in Read Only mode (+x rem):",
+        //   action: {
+        //     type: "reactComponent",
+        //     component: wrappedLetterSpacingSlider,
+        //   },
+        // },
+        // {
+        //   id: "lineHeight-setting",
+        //   name: "Line height",
+        //   description:
+        //     "Line height (more space between lines) in Read Only mode:",
+        //   action: {
+        //     type: "reactComponent",
+        //     component: wrappedLineHeightSlider,
+        //   },
+        // },
+        // {
+        //   id: "sampleText1-setting",
+        //   name: "Sample text",
+        //   description: "whose style changes when the above sliders are handled",
+        //   action: {
+        //     type: "reactComponent",
+        //     component: wrappedSampleTextForReadOnly,
+        //   },
+        // },
         {
           id: "navigation-setting",
           name: "Navigation controls",
@@ -224,9 +284,9 @@ export default {
             "Display Nagiation controls to browse from one block to another:",
           action: {
             type: "select",
-            items: [...toggleWaySet],
+            items: [...toggleWayWithReadOnlySet],
             onChange: (evt) => {
-              navMode.setToggleWay(evt);
+              navMode.setToggleWay(evt, true);
               updateAfterSettingsChange();
             },
           },
@@ -237,9 +297,9 @@ export default {
           description: "Select a block on click instead of editing it:",
           action: {
             type: "select",
-            items: [...toggleWaySet],
+            items: [...toggleWayWithReadOnlySet],
             onChange: (evt) => {
-              selectOnClickMode.setToggleWay(evt);
+              selectOnClickMode.setToggleWay(evt, true);
               updateAfterSettingsChange();
             },
           },
@@ -251,31 +311,31 @@ export default {
             "Focus on the hovered block, and reduce visibility of other blocks and interface components:",
           action: {
             type: "select",
-            items: [...toggleWaySet],
+            items: [...toggleWayWithReadOnlySet],
             onChange: (evt) => {
-              focusMode.setToggleWay(evt);
+              focusMode.setToggleWay(evt, true);
               updateAfterSettingsChange();
             },
           },
         },
-        {
-          id: "focusOpacity-setting",
-          name: "Unfocused opacity",
-          description:
-            "Opacity of unfocused elements (0: invisible, 0.5: semi-opacity)",
-          action: {
-            type: "select",
-            items: ["0", "0.03", "0.05", "0.1", "0.2", "0.3", "0.5"],
-            onChange: (evt) => {
-              let oldOpacity = unfocusedOpacity;
-              unfocusedOpacity = evt.replace(".", "");
-              if (focusMode.isOn) {
-                ROAM_APP_ELT.classList.remove(`rf-${oldOpacity}`);
-                ROAM_APP_ELT.classList.add(`rf-${unfocusedOpacity}`);
-              }
-            },
-          },
-        },
+        // {
+        //   id: "focusOpacity-setting",
+        //   name: "Unfocused opacity",
+        //   description:
+        //     "Opacity of unfocused elements (0: invisible, 0.5: semi-opacity)",
+        //   action: {
+        //     type: "select",
+        //     items: ["0", "0.03", "0.05", "0.1", "0.2", "0.3", "0.5"],
+        //     onChange: (evt) => {
+        //       let oldOpacity = unfocusedOpacity;
+        //       unfocusedOpacity = evt.replace(".", "");
+        //       if (focusMode.isOn) {
+        //         ROAM_APP_ELT.classList.remove(`rf-${oldOpacity}`);
+        //         ROAM_APP_ELT.classList.add(`rf-${unfocusedOpacity}`);
+        //       }
+        //     },
+        //   },
+        // },
         {
           id: "bionic-setting",
           name: "Bionic reading Mode",
@@ -288,28 +348,28 @@ export default {
             },
           },
         },
-        {
-          id: "fixation-setting",
-          name: "Fixation",
-          description:
-            "Set fixation (percetage of word in bold, from 0 to 100):",
-          action: { type: "reactComponent", component: wrappedFixationSlider },
-        },
-        {
-          id: "saccade-setting",
-          name: "Saccade",
-          description: "Set saccade (applies every n words, from 1 to 5):",
-          action: { type: "reactComponent", component: wrappedSaccadeSlider },
-        },
-        {
-          id: "sampleText2-setting",
-          name: "Sample text",
-          description: "whose style changes when the above sliders are handled",
-          action: {
-            type: "reactComponent",
-            component: wrappedSampleTextForBionic,
-          },
-        },
+        // {
+        //   id: "fixation-setting",
+        //   name: "Fixation",
+        //   description:
+        //     "Set fixation (percetage of word in bold, from 0 to 100):",
+        //   action: { type: "reactComponent", component: wrappedFixationSlider },
+        // },
+        // {
+        //   id: "saccade-setting",
+        //   name: "Saccade",
+        //   description: "Set saccade (applies every n words, from 1 to 5):",
+        //   action: { type: "reactComponent", component: wrappedSaccadeSlider },
+        // },
+        // {
+        //   id: "sampleText2-setting",
+        //   name: "Sample text",
+        //   description: "whose style changes when the above sliders are handled",
+        //   action: {
+        //     type: "reactComponent",
+        //     component: wrappedSampleTextForBionic,
+        //   },
+        // },
         {
           id: "smartphone-setting",
           name: "On Smartphone",
@@ -328,9 +388,6 @@ export default {
           },
         },
       ],
-      onOpen: () => {
-        applyToTestText();
-      },
     };
 
     extensionAPI.settings.panel.create(panelConfig);
@@ -368,30 +425,45 @@ export default {
       );
 
     if (extensionAPI.settings.get("navigation-setting") === null) {
-      extensionAPI.settings.set("navigation-setting", "With topbar button");
-      navMode.setToggleWay("With topbar button");
-    } else
-      navMode.setToggleWay(
+      extensionAPI.settings.set("navigation-setting", "Toggle with Read only");
+      navMode.setToggleWay("Toggle with Read only", true);
+    } else {
+      const migratedValue = migrateToReadOnlyToggleWay(
         normalizeToggleWayV4(extensionAPI.settings.get("navigation-setting"))
       );
+      navMode.setToggleWay(migratedValue, true);
+      if (migratedValue !== extensionAPI.settings.get("navigation-setting")) {
+        extensionAPI.settings.set("navigation-setting", migratedValue);
+      }
+    }
     navMode.initialize();
 
     if (extensionAPI.settings.get("select-setting") === null) {
-      extensionAPI.settings.set("select-setting", "With command palette only");
-      selectOnClickMode.setToggleWay("With command palette only");
-    } else
-      selectOnClickMode.setToggleWay(
+      extensionAPI.settings.set("select-setting", "On demand");
+      selectOnClickMode.setToggleWay("On demand", true);
+    } else {
+      const migratedValue = migrateToReadOnlyToggleWay(
         normalizeToggleWayV4(extensionAPI.settings.get("select-setting"))
       );
+      selectOnClickMode.setToggleWay(migratedValue, true);
+      if (migratedValue !== extensionAPI.settings.get("select-setting")) {
+        extensionAPI.settings.set("select-setting", migratedValue);
+      }
+    }
     selectOnClickMode.initialize();
 
     if (extensionAPI.settings.get("focus-setting") === null) {
-      extensionAPI.settings.set("focus-setting", "With command palette only");
-      focusMode.setToggleWay("With command palette only");
-    } else
-      focusMode.setToggleWay(
+      extensionAPI.settings.set("focus-setting", "On demand");
+      focusMode.setToggleWay("On demand", true);
+    } else {
+      const migratedValue = migrateToReadOnlyToggleWay(
         normalizeToggleWayV4(extensionAPI.settings.get("focus-setting"))
       );
+      focusMode.setToggleWay(migratedValue, true);
+      if (migratedValue !== extensionAPI.settings.get("focus-setting")) {
+        extensionAPI.settings.set("focus-setting", migratedValue);
+      }
+    }
     focusMode.initialize();
     if (extensionAPI.settings.get("focusOpacity-setting") === null) {
       extensionAPI.settings.set("focusOpacity-setting", "0.1");
@@ -401,9 +473,36 @@ export default {
         .get("focusOpacity-setting")
         .replace(".", "");
 
+    // Initialize focus mode visibility options
+    if (extensionAPI.settings.get("focusHideUI-setting") === null) {
+      extensionAPI.settings.set("focusHideUI-setting", true);
+      focusHideUI = true;
+    } else {
+      focusHideUI = extensionAPI.settings.get("focusHideUI-setting");
+    }
+
+    if (extensionAPI.settings.get("focusHideBlocks-setting") === null) {
+      extensionAPI.settings.set("focusHideBlocks-setting", true);
+      focusHideBlocks = true;
+    } else {
+      focusHideBlocks = extensionAPI.settings.get("focusHideBlocks-setting");
+    }
+
+    // Initialize font family selection
+    if (extensionAPI.settings.get("fontFamily-setting") === null) {
+      extensionAPI.settings.set("fontFamily-setting", "");
+      selectedFontFamily = "";
+    } else {
+      selectedFontFamily = extensionAPI.settings.get("fontFamily-setting");
+      if (selectedFontFamily) {
+        // Apply font family using data attribute
+        ROAM_APP_ELT.setAttribute("data-font-family", selectedFontFamily);
+      }
+    }
+
     if (extensionAPI.settings.get("bionic-setting") === null) {
-      extensionAPI.settings.set("button-setting", "With command palette only");
-      bionicMode.setToggleWay("With command palette only");
+      extensionAPI.settings.set("button-setting", "On demand");
+      bionicMode.setToggleWay("On demand");
     } else
       bionicMode.setToggleWay(
         normalizeToggleWayV4(extensionAPI.settings.get("bionic-setting"))
@@ -426,7 +525,6 @@ export default {
       label: "Reading Modes: Toggle Read only mode",
       callback: () => {
         isOn = !isOn;
-        toggleButtonIcon();
         readOnlyMode.isOn = !readOnlyMode.isOn;
         updateAfterSettingsChange("Read only mode", readOnlyMode.isOn);
       },
@@ -463,18 +561,10 @@ export default {
       },
     });
     extensionAPI.ui.commandPalette.addCommand({
-      label: "Reading Modes: Toggle modes triggered by the button",
-      callback: () => {
-        isOn = !isOn;
-        onClickOnTopbarButton();
-      },
-    });
-    extensionAPI.ui.commandPalette.addCommand({
       label: "Reading Modes: Disable all modes",
       callback: () => {
         modesArray.forEach((mode) => mode.set("off"));
         isOn = false;
-        toggleButtonIcon();
         onToggleOf();
       },
     });
@@ -508,10 +598,9 @@ export default {
       "default-hotkey": "ctrl-alt-down",
     });
 
-    if (buttonInTopBar) buttonToggle();
+    if (buttonInTopBar) buttonToggle(extensionAPI);
     if (readOnlyMode.isOn) {
       isOn = true;
-      toggleButtonIcon();
     }
     window.addEventListener("popstate", autoToggleWhenBrowsing);
     applyEnabledModes();
@@ -520,94 +609,89 @@ export default {
   onunload: () => {
     modesArray.forEach((mode) => mode.set("off"));
     onToggleOf(true);
-    if (buttonInTopBar) buttonToggle();
+    if (buttonInTopBar) {
+      let container = document.getElementById("reading-mode-container");
+      if (container) {
+        ReactDOM.unmountComponentAtNode(container);
+      }
+    }
     console.log("Reading mode extension unloaded.");
   },
 };
 
-function buttonToggle() {
+function buttonToggle(extensionAPI) {
   let nameToUse = "reading-mode",
-    bpIconName = "unlock",
-    checkForButton = document.getElementById(nameToUse + "-icon");
+    checkForButton = document.getElementById(nameToUse + "-container");
+
   if (!checkForButton) {
+    // Create container for React component
     let mainButton = document.createElement("span");
-    (mainButton.id = nameToUse + "-button"),
-      mainButton.classList.add("bp3-popover-wrapper");
-    let spanTwo = document.createElement("span");
-    spanTwo.classList.add("bp3-popover-target"),
-      mainButton.appendChild(spanTwo);
-    let mainIcon = document.createElement("span");
-    (mainIcon.id = nameToUse + "-icon"),
-      mainIcon.classList.add(
-        "bp3-icon-" + bpIconName,
-        "bp3-button",
-        "bp3-minimal",
-        "bp3-small"
-      ),
-      spanTwo.appendChild(mainIcon);
+    mainButton.id = nameToUse + "-container";
+    mainButton.classList.add("bp3-popover-wrapper");
+
     let roamTopbar = document.getElementsByClassName("rm-topbar"),
       nextIconButton = roamTopbar[0].lastElementChild,
       flexDiv = document.createElement("div");
-    (flexDiv.id = nameToUse + "-flex-space"),
-      (flexDiv.className = "rm-topbar__spacer-sm"),
-      nextIconButton.insertAdjacentElement("afterend", mainButton),
-      mainButton.insertAdjacentElement("afterend", flexDiv),
-      mainButton.addEventListener("click", onClickOnTopbarButton);
+
+    flexDiv.id = nameToUse + "-flex-space";
+    flexDiv.className = "rm-topbar__spacer-sm";
+    nextIconButton.insertAdjacentElement("afterend", mainButton);
+    mainButton.insertAdjacentElement("afterend", flexDiv);
+
+    // Render React PopoverMenu component
+    ReactDOM.render(
+      React.createElement(PopoverMenu, {
+        extensionAPI,
+        readOnlyMode,
+        bionicMode,
+        selectOnClickMode,
+        focusMode,
+        navMode,
+        updateAfterSettingsChange,
+      }),
+      mainButton
+    );
+
     console.log("Reading mode button added");
   } else {
+    // Unmount React component
+    ReactDOM.unmountComponentAtNode(checkForButton);
     document.getElementById(nameToUse + "-flex-space").remove();
-    document.getElementById(nameToUse + "-button").remove();
     checkForButton.remove();
     console.log("Reading mode button removed");
   }
 }
 
-function onClickOnTopbarButton() {
-  isOn = !isOn;
-  toggleButtonIcon();
-  if (isOn) {
-    if (
-      readOnlyMode.onButton ||
-      (IS_ON_SMARTPHONE && readOnlyMode.onSmartphone)
-    )
-      readOnlyMode.isOn = true;
-    if (bionicMode.onButton) bionicMode.isOn = true;
-    if (selectOnClickMode.onButton) selectOnClickMode.isOn = true;
-    if (focusMode.onButton) focusMode.isOn = true;
-    if (navMode.onButton || (IS_ON_SMARTPHONE && navMode.onSmartphone))
-      navMode.isOn = true;
-    applyEnabledModes();
-  } else {
-    if (
-      readOnlyMode.onButton ||
-      (IS_ON_SMARTPHONE && readOnlyMode.onSmartphone)
-    )
-      readOnlyMode.isOn = false;
-    if (bionicMode.onButton) bionicMode.isOn = false;
-    if (selectOnClickMode.onButton) selectOnClickMode.isOn = false;
-    if (focusMode.onButton) focusMode.isOn = false;
-    if (navMode.onButton || (IS_ON_SMARTPHONE && navMode.onSmartphone))
-      navMode.isOn = false;
-    onToggleOf();
-  }
-}
-
-function toggleButtonIcon() {
-  if (isOn) {
-    let icon = document.querySelector("#reading-mode-icon");
-    icon.classList.remove("bp3-icon-unlock");
-    icon.classList.add("bp3-icon-lock");
-    icon.classList.add("bp3-intent-primary");
-  } else {
-    let icon = document.querySelector("#reading-mode-icon");
-    icon.classList.remove("bp3-icon-lock");
-    icon.classList.add("bp3-icon-unlock");
-    icon.classList.remove("bp3-intent-primary");
-  }
-}
-
 function updateAfterSettingsChange(mode = null, status = null) {
   if (mode) toasterOnModeToggle(mode, status);
+
+  // Auto-enable/disable modes tied to Read Only mode
+  if (mode === "Read only mode") {
+    if (status) {
+      // Read Only was enabled, enable tied modes
+      if (navMode.onReadOnly && !navMode.isOn) {
+        navMode.isOn = true;
+      }
+      if (selectOnClickMode.onReadOnly && !selectOnClickMode.isOn) {
+        selectOnClickMode.isOn = true;
+      }
+      if (focusMode.onReadOnly && !focusMode.isOn) {
+        focusMode.isOn = true;
+      }
+    } else {
+      // Read Only was disabled, disable tied modes
+      if (navMode.onReadOnly && navMode.isOn) {
+        navMode.isOn = false;
+      }
+      if (selectOnClickMode.onReadOnly && selectOnClickMode.isOn) {
+        selectOnClickMode.isOn = false;
+      }
+      if (focusMode.onReadOnly && focusMode.isOn) {
+        focusMode.isOn = false;
+      }
+    }
+  }
+
   onToggleOf();
   applyEnabledModes();
 }
@@ -632,6 +716,10 @@ async function applyEnabledModes(refresh = false) {
       ROAM_APP_ELT.classList.add(
         `read-lh-${lineHeight.toString().replace(".", "")}`
       );
+      // Apply font family if one is selected
+      if (selectedFontFamily) {
+        ROAM_APP_ELT.setAttribute("data-font-family", selectedFontFamily);
+      }
     }
     let elt = document.querySelectorAll(".rm-block-text");
     applyModesToSelection(elt);
@@ -649,6 +737,12 @@ async function applyEnabledModes(refresh = false) {
   if (focusMode.isOn && !refresh) {
     ROAM_APP_ELT.classList.add("read-focus");
     ROAM_APP_ELT.classList.add(`rf-${unfocusedOpacity}`);
+    if (focusHideUI) {
+      ROAM_APP_ELT.classList.add("read-focus-hide-ui");
+    }
+    if (focusHideBlocks) {
+      ROAM_APP_ELT.classList.add("read-focus-hide-blocks");
+    }
   }
   if (navMode.isOn) {
     refresh ? await updateNavigation() : await initializeNavigation();
@@ -694,6 +788,8 @@ export function onToggleOf() {
   }
   if (!focusMode.isOn) {
     ROAM_APP_ELT.classList.remove("read-focus");
+    ROAM_APP_ELT.classList.remove("read-focus-hide-ui");
+    ROAM_APP_ELT.classList.remove("read-focus-hide-blocks");
     ROAM_APP_ELT.classList.remove(`rf-${unfocusedOpacity}`);
   }
   if (!navMode.isOn) {

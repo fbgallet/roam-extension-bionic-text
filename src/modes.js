@@ -77,6 +77,7 @@ export function removeReadOnly() {
   ROAM_APP_ELT.classList.remove(
     `read-lh-${lineHeight.toString().replace(".", "")}`
   );
+  ROAM_APP_ELT.removeAttribute("data-font-family");
   let pageTitle = document.querySelector(".rm-title-display");
   if (pageTitle) pageTitle.style.pointerEvents = "all";
   let kanban = document.querySelectorAll(".kanban-board");
