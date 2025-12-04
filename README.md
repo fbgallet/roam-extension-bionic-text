@@ -1,6 +1,6 @@
 # Navigation & Reading modes
 
-Navigation controls (to navigate between zoomed sibling blocks or through Daily notes), Read-only, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading).
+Navigation controls (to navigate between zoomed sibling blocks or through Daily notes, with block or page preview), Read-only, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading).
 
 ![Reading modes readme](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/d1bb6d4e-c534-4ffa-b224-daf1fda7c176)
 
