@@ -2,7 +2,7 @@
 
 Navigation controls (to navigate between zoomed sibling blocks or through Daily notes, with block or page preview), Read-only, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading).
 
-![Reading modes readme](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/d1bb6d4e-c534-4ffa-b224-daf1fda7c176)
+![Navigation   Reading modes demo](https://github.com/user-attachments/assets/5b3111ce-7775-4fb0-8ff6-e64ddeeebac8)
 
 Each feature can be enableb on demand via 🔓 topbar button/menu or command palette, or when the graph is loaded (which can be useful for sensitive data), or paired with Read-only mode. Read-only and navigation controls can also be automatically enabled on mobile only.
 
