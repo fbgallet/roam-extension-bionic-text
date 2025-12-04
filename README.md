@@ -1,23 +1,34 @@
 # Navigation & Reading modes
 
-Navigation controls, Read-only, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading). All these modes can be enabled independently or in groups via a topbar menu and commands in Command palette.
+Navigation controls (to navigate between zoomed sibling blocks or through Daily notes), Read-only, Focus mode, Click-to-select (instead of edit) and Bionic mode (Bionic reading).
 
 ![Reading modes readme](https://github.com/fbgallet/roam-extension-bionic-text/assets/74436347/d1bb6d4e-c534-4ffa-b224-daf1fda7c176)
 
-Each feature can be enableb on demand via the topbar button, or when the graph is loaded (which can be useful for sensitive data), or paired with Read-only mode. Read-only and navigation controls can also be automatically enabled on mobile only.
+Each feature can be enableb on demand via 🔓 topbar button/menu or command palette, or when the graph is loaded (which can be useful for sensitive data), or paired with Read-only mode. Read-only and navigation controls can also be automatically enabled on mobile only.
+
+- `Cmd` or `Ctrl` + click on 🔓 topbar button enable Read-only mode and all paired feature
+- Simple click on 🔓 topbar button open the menu to toggle the following features:
+
+### Navigation controls
+
+Inserts very subtle controls (arrows in cardinal directions) in the bottom right-hand corne (by default) of the main page.
+
+- **Up/Down** move to the **previous/next sibling block**. Hotheys: `Ctrl+Alt+Up/Down arrow` by default. If there is no next sibling block, a double chevron is displayed and you navigate to the next sibling block of the first parent to have a next sibling. If there is no previous sibling block, you navigate to the parent.
+- **Left/Right** move to the **parent/child block**. `Ctrl+Alt+Left/Right arrow` by default.
+
+On **Daily Notes**, the double up and down chevrons let you move to the previous or next Daily Note. By pressing modifier keys, you can jump to a Daily Note
+
+- `+Shift`: one week apart,
+- `+Cmd` on Mac or `+Ctrl` on Windows: one month apart,
+- `+Alt`: one year apart.
 
 ### Read-only
 
 Block content and page title can't be edited, but you can still click on links, checkboxes, buttons and all other controls.
 
-You can increase letter spacing and line height for better readability, and switch font.
+You can increase letter spacing and line height or switch font for better readability.
 
-### Navigation controls
-
-Inserts very subtle controls (arrows in cardinal directions) in the bottom right-hand corner of the main page.
-
-- **Up/Down** move to the **previous/next sibling block**. Hotheys: `Ctrl+Alt+Up/Down arrow` by default. If there is no next sibling block, a double chevron is displayed and you navigate to the next sibling block of the first parent to have a next sibling. If there is no previous sibling block, you navigate to the parent.
-- **Left/Right** move to the **parent/child block**. `Ctrl+Alt+Left/Right arrow` by default.
+This mode can be especially useful on mobile to prevent accidental edits. It can be enabled automatically on mobile
 
 ### Click-to-select
 
@@ -25,7 +36,7 @@ When you click in a block, it will be selected (blue highlighted) instead of edi
 
 ### Focus mode
 
-Only the currently hovered or edited block is visible, everything else (other blocks, bullets, title, sidebar, top bar, etc.) becomes partially or completely transparent depending on the chosen opacity level (from 0 to 0.5). Simply move the mouse to the margin to make all blocks reappear, or hover over an element to make it appear.
+Only the currently hovered or edited block is visible, everything else (other blocks, bullets, title, sidebar, top bar, etc.) becomes partially or completely transparent depending on the chosen opacity level (from 0 to 0.3). Simply move the mouse to the margin to make all blocks reappear, or hover over an element to make it appear.
 
 ### Bionic mode
 
@@ -44,5 +55,10 @@ Settings for Bionic mode:
 
 ---
 
-If you find my work useful and want to encourage me to continue and improve the existing extensions or produce new ones, you can buy me a coffee ☕ [https://buymeacoffee.com/fbgallet](https://buymeacoffee.com/fbgallet) and follow me on Twitter: [@fbgallet](https://twitter.com/fbgallet).
-Thanks in advance for your support! 🙏
+## If you want to support my work
+
+If you want to encourage me to develop further and enhance this Roam extension, you can [buy me a coffee ☕ here](https://buymeacoffee.com/fbgallet) or [sponsor me on Github](https://github.com/sponsors/fbgallet). Thanks in advance for your support! 🙏
+
+For any question or suggestion, DM me on **X/Twitter** and follow me to be informed of updates and new extensions : [@fbgallet](https://x.com/fbgallet), or on Bluesky: [@fbgallet.bsky.social](https://bsky.app/profile/fbgallet.bsky.social)
+
+Please report any issue [here](https://github.com/fbgallet/roam-extension-bionic-text/issues).

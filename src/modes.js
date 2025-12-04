@@ -42,6 +42,7 @@ export function applyModesToSelection(elt) {
 export function readOnly(elt) {
   if (elt) {
     elt.style.pointerEvents = "none";
+    elt.contentEditable = "false";
     let eltToExclude = elt.querySelectorAll(
       ".rm-page-ref, .rm-block-ref, .check-container, a, button, iframe, .rm-inline-img__resize, .react-resizable"
     );
@@ -66,6 +67,7 @@ export function removeReadOnly() {
   if (!selectOnClickMode.isOn)
     elt.forEach((item) => {
       item.style.pointerEvents = "all";
+      item.contentEditable = "true";
       let codeBlocks = item.querySelectorAll(".cm-content");
       if (codeBlocks) codeBlocks.forEach((e) => (e.contentEditable = "true"));
     });

@@ -632,9 +632,9 @@
 
 /* Chevron popover styles */
 .chevron-popover {
-  width: 400px;
-  min-width: 400px;
-  max-width: 400px;
+  width: 450px;
+  min-width: 450px;
+  max-width: 450px;
   z-index: 1000;
   pointer-events: auto;
   cursor: default;
@@ -670,7 +670,7 @@
 }
 
 .chevron-popover-block {
-  max-height: 150px;
+  max-height: 180px;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -729,4 +729,9 @@
 .chevron-popover-block .rm-page-ref-tag {
   color: var(--page-link-color, #8ab4f8) !important;
   opacity: 1 !important;
+}
+
+.chevron-popover-block .rm-title-display {
+  font-size: 20px;
+  margin: 10px 0;
 }

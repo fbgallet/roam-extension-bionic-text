@@ -5,26 +5,10 @@ export var runners = {};
 export var refs = [];
 export var counters = [];
 
-// Throttle helper to limit function execution frequency
-let throttleTimeout = null;
-const throttle = (callback, delay = 100) => {
-  return (...args) => {
-    if (!throttleTimeout) {
-      callback(...args);
-      throttleTimeout = setTimeout(() => {
-        throttleTimeout = null;
-      }, delay);
-    }
-  };
-};
-
 export function connectObservers(logPage = null) {
-  // Apply throttling to the main page observer to improve performance
-  const throttledMainPageObserver = throttle(onMutationOnMainPage, 50);
-
   addObserver(
     document.getElementsByClassName("roam-app")[0],
-    throttledMainPageObserver,
+    onMutationOnMainPage,
     {
       childList: true,
       subtree: true,
@@ -104,7 +88,6 @@ function onNewPageInDailyLog(mutation) {
 
 function onMutationOnMainPage(mutation) {
   let txtElts;
-  //console.log(mutation);
   if (readOnlyMode.isOn || bionicMode.isOn || selectOnClickMode.isOn) {
     if (
       (mutation[0].target.closest(".roam-sidebar-container") &&
@@ -113,16 +96,13 @@ function onMutationOnMainPage(mutation) {
       mutation[0].target.className.includes("cm-")
     )
       return;
-    //console.log(mutation);
     for (let i = 0; i < mutation.length; i++) {
       if (
         mutation[i].addedNodes.length > 0 &&
         mutation[i].target.localName !== "span" &&
         mutation[i].target.localName !== "textarea"
       ) {
-        if (mutation[0].addedNodes[0]?.classList?.contains("rm-block")) {
-          //console.log("blocks expanded");
-          //console.log(mutation);
+        if (mutation[i].addedNodes[0]?.classList?.contains("rm-block")) {
           txtElts = mutation[i].target.querySelectorAll(".rm-block-text");
           applyModesToSelection(txtElts);
           return;

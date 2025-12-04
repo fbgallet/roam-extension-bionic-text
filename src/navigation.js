@@ -1,10 +1,21 @@
-import { navMode, popoverShowDelay, navChevronPosition, navChevronOpacity } from ".";
+import {
+  navMode,
+  popoverShowDelay,
+  navChevronPosition,
+  navChevronOpacity,
+  AppToaster,
+} from ".";
+import { Intent } from "@blueprintjs/core";
 import {
   getFirstChildUid,
   getParentUID,
   getSiblingsAndOrder,
   isCurrentPageDNP,
   isExisting,
+  dnpUidToPageTitle,
+  createPage,
+  openPage,
+  getTodayDNPUid,
 } from "./utils/roamAPI";
 import {
   getNextExistingDNP,
@@ -12,6 +23,7 @@ import {
   getDNPOffsetByDays,
   getDNPOffsetByMonths,
   getDNPOffsetByYears,
+  getNextDayUid,
 } from "./utils/dnp";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +43,13 @@ let keyboardModifiers = {
   shift: false,
   ctrl: false,
   alt: false,
+};
+
+// Track clicks on non-existent DNP pages for "click again to create" feature
+let lastNonExistentDNPClick = {
+  uid: null,
+  timestamp: 0,
+  direction: null,
 };
 
 // Update keyboard modifier state
@@ -87,6 +106,7 @@ function getTargetDNPWithModifiers(uid, direction) {
       uid: targetUid,
       label: `${multiplier > 0 ? "Next" : "Previous"} year (same day)`,
       exists: isExisting(targetUid),
+      hasModifier: true,
     };
   } else if (keyboardModifiers.ctrl) {
     // Ctrl/Cmd: 1 month
@@ -95,6 +115,7 @@ function getTargetDNPWithModifiers(uid, direction) {
       uid: targetUid,
       label: `${multiplier > 0 ? "Next" : "Previous"} month (same day)`,
       exists: isExisting(targetUid),
+      hasModifier: true,
     };
   } else if (keyboardModifiers.shift) {
     // Shift: 7 days (1 week)
@@ -103,9 +124,10 @@ function getTargetDNPWithModifiers(uid, direction) {
       uid: targetUid,
       label: `${multiplier > 0 ? "+7" : "-7"} days`,
       exists: isExisting(targetUid),
+      hasModifier: true,
     };
   } else {
-    // No modifier: next/previous day
+    // No modifier: next/previous existing day
     const getNextOrPrevFn =
       direction === "forward" ? getNextExistingDNP : getPreviousExistingDNP;
     const targetUid = getNextOrPrevFn(uid, isExisting);
@@ -113,6 +135,7 @@ function getTargetDNPWithModifiers(uid, direction) {
       uid: targetUid,
       label: `${direction === "forward" ? "Next" : "Previous"} Daily Note`,
       exists: targetUid !== null,
+      hasModifier: false,
     };
   }
 }
@@ -193,8 +216,59 @@ function addPopoverToChevron(chevronElement, getBlockUid, getLabel) {
       blockUid = targetInfo.uid;
       label = targetInfo.label;
 
+      // Special case: on today's page with no tomorrow
+      const isToday = topViewBlockContext.uid === getTodayDNPUid();
+      const isTomorrowMissing = direction === "forward" &&
+                                !keyboardModifiers.shift &&
+                                !keyboardModifiers.ctrl &&
+                                !keyboardModifiers.alt &&
+                                isToday &&
+                                !blockUid;
+
+      // If we're on today and tomorrow doesn't exist, use tomorrow's uid for the message
+      if (isTomorrowMissing) {
+        blockUid = getNextDayUid(topViewBlockContext.uid);
+        label = "Next Daily Note (tomorrow)";
+      }
+
       if (!targetInfo.exists && blockUid) {
-        notExistingMessage = "This daily note page doesn't exist yet.";
+        const pageTitle = dnpUidToPageTitle(blockUid);
+
+        // Check if this is a click on next day when current page is today
+        const isNextDayFromToday =
+          direction === "forward" &&
+          !keyboardModifiers.shift &&
+          !keyboardModifiers.ctrl &&
+          !keyboardModifiers.alt &&
+          topViewBlockContext.uid === getTodayDNPUid() &&
+          blockUid === getNextDayUid(topViewBlockContext.uid);
+
+        // Show "click again to create" message for:
+        // 1. Distant dates (with modifiers)
+        // 2. Next day from today
+        const shouldShowCreateMessage =
+          keyboardModifiers.shift ||
+          keyboardModifiers.ctrl ||
+          keyboardModifiers.alt ||
+          isNextDayFromToday;
+
+        if (shouldShowCreateMessage) {
+          // Check if user already clicked once
+          const hasClickedOnce = lastNonExistentDNPClick.uid === blockUid &&
+                                 lastNonExistentDNPClick.direction === direction &&
+                                 (Date.now() - lastNonExistentDNPClick.timestamp) < 3000;
+
+          const hasModifier = keyboardModifiers.shift || keyboardModifiers.ctrl || keyboardModifiers.alt;
+          const modifierText = hasModifier ? " (with the same modifier key)" : "";
+
+          if (hasClickedOnce) {
+            notExistingMessage = `Click again${modifierText} to CREATE and open:\n"${pageTitle}"`;
+          } else {
+            notExistingMessage = `Click twice${modifierText} to create and open:\n"${pageTitle}"`;
+          }
+        } else {
+          notExistingMessage = "This daily note page doesn't exist yet.";
+        }
       }
     }
 
@@ -418,7 +492,12 @@ function addPopoverToChevron(chevronElement, getBlockUid, getLabel) {
 // Apply position and opacity settings to chevrons
 function applyChevronDisplaySettings() {
   // Remove existing position classes
-  chevrons.classList.remove("chevrons-top-left", "chevrons-top-right", "chevrons-bottom-right", "chevrons-bottom-left");
+  chevrons.classList.remove(
+    "chevrons-top-left",
+    "chevrons-top-right",
+    "chevrons-bottom-right",
+    "chevrons-bottom-left"
+  );
 
   // Add position class
   const positionClass = `chevrons-${navChevronPosition}`;
@@ -558,8 +637,10 @@ export function updateChevronsElts() {
     }
 
     // Bottom chevron - navigate to next DNP
+    // Show chevron even on today's date to allow creating tomorrow's page
+    const isToday = topViewBlockContext.uid === getTodayDNPUid();
     const nextDNP = getNextExistingDNP(topViewBlockContext.uid, isExisting);
-    if (nextDNP) {
+    if (nextDNP || isToday) {
       bottomChevron.style.removeProperty("opacity");
       isAnimated
         ? setTimeout(() => bottomChevron.classList.add("double-chevron"), 1000)
@@ -684,15 +765,103 @@ export async function navigateToBlock(direction, event = null) {
             navDirection
           );
 
-          // If the target doesn't exist with modifiers, don't navigate
-          if (
-            !targetInfo.exists &&
-            (keyboardModifiers.shift ||
-              keyboardModifiers.ctrl ||
-              keyboardModifiers.alt)
-          ) {
-            console.log(`Target DNP doesn't exist: ${targetInfo.label}`);
-            return; // Don't navigate if DNP doesn't exist
+          // Check if this is a click on next day when current page is today
+          const isToday = topViewBlockContext.uid === getTodayDNPUid();
+          const isNextDayFromToday =
+            navDirection === "forward" &&
+            !keyboardModifiers.shift &&
+            !keyboardModifiers.ctrl &&
+            !keyboardModifiers.alt &&
+            isToday;
+
+          // Special case: if we're on today and there's no tomorrow, use tomorrow's uid
+          let actualTargetUid = targetInfo.uid;
+          if (isNextDayFromToday && !targetInfo.uid) {
+            actualTargetUid = getNextDayUid(topViewBlockContext.uid);
+          }
+
+          // Determine if we should allow creation for this target
+          const shouldAllowCreation =
+            keyboardModifiers.shift ||
+            keyboardModifiers.ctrl ||
+            keyboardModifiers.alt ||
+            isNextDayFromToday;
+
+          // If the target doesn't exist
+          if (!targetInfo.exists && actualTargetUid) {
+            // Check if this is a second click on the same non-existent DNP (within 3 seconds)
+            const now = Date.now();
+            const isSameTarget =
+              lastNonExistentDNPClick.uid === actualTargetUid &&
+              lastNonExistentDNPClick.direction === navDirection;
+            const isRecentClick =
+              now - lastNonExistentDNPClick.timestamp < 3000;
+
+            if (isSameTarget && isRecentClick && shouldAllowCreation) {
+              // Second click: create and open the page
+              try {
+                const pageTitle = dnpUidToPageTitle(actualTargetUid);
+                console.log(`Creating daily note page: ${pageTitle}`);
+                await createPage(pageTitle);
+
+                // Show toaster notification
+                AppToaster.show({
+                  message: `Created Daily Note: ${pageTitle}`,
+                  intent: Intent.SUCCESS,
+                  timeout: 3000,
+                });
+
+                openPage(actualTargetUid);
+
+                // Reset the click tracker
+                lastNonExistentDNPClick = {
+                  uid: null,
+                  timestamp: 0,
+                  direction: null,
+                };
+
+                // Update navigation context after page creation
+                setTimeout(async () => {
+                  await updateNavigation();
+                }, 100);
+
+                return;
+              } catch (error) {
+                console.error("Failed to create daily note page:", error);
+                AppToaster.show({
+                  message: `Failed to create page: ${error.message}`,
+                  intent: Intent.DANGER,
+                  timeout: 5000,
+                });
+                return;
+              }
+            } else {
+              // First click: track it and show message (don't navigate)
+              lastNonExistentDNPClick = {
+                uid: actualTargetUid,
+                timestamp: now,
+                direction: navDirection,
+              };
+              console.log(
+                `First click on non-existent DNP. Click again to create: ${dnpUidToPageTitle(
+                  actualTargetUid
+                )}`
+              );
+
+              // Show toaster notification for first click
+              if (shouldAllowCreation) {
+                const pageTitle = dnpUidToPageTitle(actualTargetUid);
+                const hasModifier = keyboardModifiers.shift || keyboardModifiers.ctrl || keyboardModifiers.alt;
+                const modifierText = hasModifier ? " while pressing the same modifier key" : "";
+                AppToaster.show({
+                  message: `Click again${modifierText} to create: ${pageTitle}`,
+                  intent: Intent.PRIMARY,
+                  timeout: 3000,
+                });
+              }
+
+              return; // Don't navigate on first click
+            }
           }
 
           targetUid = targetInfo.uid;
@@ -732,6 +901,12 @@ export async function navigateToBlock(direction, event = null) {
       window.roamAlphaAPI.ui.mainWindow.openBlock({
         block: { uid: targetUid },
       });
+
+      // Update navigation context after navigation completes
+      // Use a small delay to ensure Roam has finished rendering the new block
+      setTimeout(async () => {
+        await updateNavigation();
+      }, 100);
     }
   } catch (error) {
     console.error("Failed to navigate to block:", error);

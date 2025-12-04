@@ -76,3 +76,35 @@ export const getYesterdayDate = (date = null) => {
   if (!date) date = new Date();
   return new Date(date.getTime() - 24 * 60 * 60 * 1000);
 };
+
+// Convert DNP uid (mm-dd-yyyy) to Roam page title
+export const dnpUidToPageTitle = (dnpUid) => {
+  const dateArray = dnpUid.split("-");
+  const year = parseInt(dateArray[2]);
+  const month = parseInt(dateArray[0]) - 1; // Months are indexed from 0 to 11 in JavaScript
+  const day = parseInt(dateArray[1]);
+  const date = new Date(year, month, day);
+
+  return window.roamAlphaAPI.util.dateToPageTitle(date);
+};
+
+// Create a new page with the given title
+export const createPage = async (pageTitle) => {
+  return await window.roamAlphaAPI.data.page.create({
+    page: { title: pageTitle },
+  });
+};
+
+// Open a page by its uid
+export const openPage = (uid) => {
+  window.roamAlphaAPI.ui.mainWindow.openPage({ page: { uid: uid } });
+};
+
+// Get today's DNP uid in mm-dd-yyyy format
+export const getTodayDNPUid = () => {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const year = today.getFullYear();
+  return `${month}-${day}-${year}`;
+};

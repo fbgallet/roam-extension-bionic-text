@@ -11,12 +11,14 @@ export function dateToUid(date) {
 
 // Convert DNP uid to Date object
 export function uidToDate(uid) {
+  if (!uid) return null;
   const [month, day, year] = uid.split('-').map(num => parseInt(num, 10));
   return new Date(year, month - 1, day);
 }
 
 // Get the next day's uid
 export function getNextDayUid(uid) {
+  if (!uid) return null;
   const date = uidToDate(uid);
   const nextDay = new Date(date.getTime() + 24 * 60 * 60 * 1000);
   return dateToUid(nextDay);
@@ -24,6 +26,7 @@ export function getNextDayUid(uid) {
 
 // Get the previous day's uid
 export function getPreviousDayUid(uid) {
+  if (!uid) return null;
   const date = uidToDate(uid);
   const previousDay = new Date(date.getTime() - 24 * 60 * 60 * 1000);
   return dateToUid(previousDay);
@@ -52,6 +55,7 @@ export function findNearestExistingDNP(startUid, direction = 1, maxDays = 365, i
 
 // Get the next existing DNP
 export function getNextExistingDNP(uid, isExistingFn) {
+  if (!uid) return null;
   const nextDayUid = getNextDayUid(uid);
   if (isExistingFn(nextDayUid)) {
     return nextDayUid;
@@ -61,6 +65,7 @@ export function getNextExistingDNP(uid, isExistingFn) {
 
 // Get the previous existing DNP
 export function getPreviousExistingDNP(uid, isExistingFn) {
+  if (!uid) return null;
   const previousDayUid = getPreviousDayUid(uid);
   if (isExistingFn(previousDayUid)) {
     return previousDayUid;
@@ -70,6 +75,7 @@ export function getPreviousExistingDNP(uid, isExistingFn) {
 
 // Get DNP offset by a specific number of days
 export function getDNPOffsetByDays(uid, days) {
+  if (!uid) return null;
   const date = uidToDate(uid);
   const offsetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
   return dateToUid(offsetDate);
@@ -77,6 +83,7 @@ export function getDNPOffsetByDays(uid, days) {
 
 // Get DNP offset by a specific number of months (same day, different month)
 export function getDNPOffsetByMonths(uid, months) {
+  if (!uid) return null;
   const date = uidToDate(uid);
   const offsetDate = new Date(date);
   offsetDate.setMonth(date.getMonth() + months);
@@ -92,6 +99,7 @@ export function getDNPOffsetByMonths(uid, months) {
 
 // Get DNP offset by a specific number of years (same day and month, different year)
 export function getDNPOffsetByYears(uid, years) {
+  if (!uid) return null;
   const date = uidToDate(uid);
   const offsetDate = new Date(date);
   offsetDate.setFullYear(date.getFullYear() + years);

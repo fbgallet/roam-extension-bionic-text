@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import {
+  Icon,
   Popover,
   Menu,
   MenuItem,
   MenuDivider,
   Switch,
   HTMLSelect,
+  Button,
 } from "@blueprintjs/core";
 import {
   FixationSlider,
@@ -37,6 +39,12 @@ export function PopoverMenu({
   const [isOpen, setIsOpen] = useState(false);
   const [, forceUpdate] = useState({});
 
+  // Track collapsed state for each mode
+  const [readOnlyCollapsed, setReadOnlyCollapsed] = useState(false);
+  const [bionicCollapsed, setBionicCollapsed] = useState(false);
+  const [focusCollapsed, setFocusCollapsed] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(false);
+
   // Re-render when modes change
   useEffect(() => {
     const interval = setInterval(() => {
@@ -67,9 +75,22 @@ export function PopoverMenu({
         icon={readOnlyMode.isOn ? "lock" : "unlock"}
         onClick={(e) => handleToggleMode(e, readOnlyMode, "Read only mode")}
         intent={readOnlyMode.isOn ? "primary" : "none"}
+        labelElement={
+          readOnlyMode.isOn && (
+            <Button
+              icon={readOnlyCollapsed ? "chevron-down" : "chevron-up"}
+              minimal
+              small
+              onClick={(e) => {
+                e.stopPropagation();
+                setReadOnlyCollapsed(!readOnlyCollapsed);
+              }}
+            />
+          )
+        }
       />
 
-      {readOnlyMode.isOn && (
+      {readOnlyMode.isOn && !readOnlyCollapsed && (
         <>
           <div className="reading-mode-slider-section">
             <div className="reading-mode-slider-container">
@@ -121,27 +142,78 @@ export function PopoverMenu({
       )}
 
       <MenuItem
-        text="Bionic Reading Mode"
-        icon={bionicMode.isOn ? "eye-open" : "eye-off"}
-        onClick={(e) => handleToggleMode(e, bionicMode, "Bionic mode")}
-        intent={bionicMode.isOn ? "primary" : "none"}
+        text="Navigation Controls"
+        icon={navMode.isOn ? "arrow-right" : "arrows-horizontal"}
+        onClick={(e) =>
+          handleToggleMode(e, navMode, "Navigation controls display")
+        }
+        intent={navMode.isOn ? "primary" : "none"}
+        labelElement={
+          navMode.isOn && (
+            <Button
+              icon={navCollapsed ? "chevron-down" : "chevron-up"}
+              minimal
+              small
+              onClick={(e) => {
+                e.stopPropagation();
+                setNavCollapsed(!navCollapsed);
+              }}
+              style={{ cursor: "pointer" }}
+            />
+          )
+        }
       />
 
-      {bionicMode.isOn && (
+      {navMode.isOn && !navCollapsed && (
         <>
           <div className="reading-mode-slider-section">
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">
-                Fixation (% of word in bold)
-              </label>
-              <FixationSlider extensionAPI={extensionAPI} />
+              <label className="reading-mode-slider-label">Position</label>
+              {React.createElement(HTMLSelect, {
+                value: navChevronPosition,
+                onChange: (e) => {
+                  e.stopPropagation();
+                  const newPosition = e.target.value;
+                  extensionAPI.settings.set("navPosition-setting", newPosition);
+                  globalVarGetter("navChevronPosition", newPosition);
+                  updateAfterSettingsChange();
+                  forceUpdate({});
+                },
+                options: [
+                  { value: "top-left", label: "Top left" },
+                  { value: "top-right", label: "Top right" },
+                  { value: "bottom-right", label: "Bottom right" },
+                  { value: "bottom-left", label: "Bottom left" },
+                ],
+              })}
             </div>
 
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">
-                Saccade (apply every n words)
-              </label>
-              <SaccadeSlider extensionAPI={extensionAPI} />
+              <label className="reading-mode-slider-label">Opacity</label>
+              {React.createElement(HTMLSelect, {
+                value:
+                  navChevronOpacity === 0
+                    ? "hover"
+                    : navChevronOpacity.toString(),
+                onChange: (e) => {
+                  e.stopPropagation();
+                  const newOpacity =
+                    e.target.value === "hover" ? 0 : parseFloat(e.target.value);
+                  extensionAPI.settings.set(
+                    "navOpacity-setting",
+                    e.target.value
+                  );
+                  globalVarGetter("navChevronOpacity", newOpacity);
+                  updateAfterSettingsChange();
+                  forceUpdate({});
+                },
+                options: [
+                  { value: "0.1", label: "0.1" },
+                  { value: "0.3", label: "0.3" },
+                  { value: "0.5", label: "0.5" },
+                  { value: "hover", label: "On hover" },
+                ],
+              })}
             </div>
           </div>
           <MenuDivider />
@@ -149,22 +221,27 @@ export function PopoverMenu({
       )}
 
       <MenuItem
-        text="Select on Click"
-        icon={selectOnClickMode.isOn ? "select" : "hand"}
-        onClick={(e) =>
-          handleToggleMode(e, selectOnClickMode, "Select on click mode")
-        }
-        intent={selectOnClickMode.isOn ? "primary" : "none"}
-      />
-
-      <MenuItem
         text="Focus Mode"
         icon={focusMode.isOn ? "eye-open" : "eye-off"}
         onClick={(e) => handleToggleMode(e, focusMode, "Focus mode")}
         intent={focusMode.isOn ? "primary" : "none"}
+        labelElement={
+          focusMode.isOn && (
+            <Button
+              icon={focusCollapsed ? "chevron-down" : "chevron-up"}
+              minimal
+              small
+              onClick={(e) => {
+                e.stopPropagation();
+                setFocusCollapsed(!focusCollapsed);
+              }}
+              style={{ cursor: "pointer" }}
+            />
+          )
+        }
       />
 
-      {focusMode.isOn && (
+      {focusMode.isOn && !focusCollapsed && (
         <>
           <div className="reading-mode-slider-section">
             <div className="reading-mode-slider-container">
@@ -232,64 +309,50 @@ export function PopoverMenu({
       )}
 
       <MenuItem
-        text="Navigation Controls"
-        icon={navMode.isOn ? "arrow-right" : "arrows-horizontal"}
+        text="Select on Click"
+        icon={selectOnClickMode.isOn ? "select" : "hand"}
         onClick={(e) =>
-          handleToggleMode(e, navMode, "Navigation controls display")
+          handleToggleMode(e, selectOnClickMode, "Select on click mode")
         }
-        intent={navMode.isOn ? "primary" : "none"}
+        intent={selectOnClickMode.isOn ? "primary" : "none"}
       />
 
-      {navMode.isOn && (
+      <MenuItem
+        text="Bionic Reading Mode"
+        icon={bionicMode.isOn ? "eye-open" : "eye-off"}
+        onClick={(e) => handleToggleMode(e, bionicMode, "Bionic mode")}
+        intent={bionicMode.isOn ? "primary" : "none"}
+        labelElement={
+          bionicMode.isOn && (
+            <Button
+              icon={bionicCollapsed ? "chevron-down" : "chevron-up"}
+              minimal
+              small
+              onClick={(e) => {
+                e.stopPropagation();
+                setBionicCollapsed(!bionicCollapsed);
+              }}
+              style={{ cursor: "pointer" }}
+            />
+          )
+        }
+      />
+
+      {bionicMode.isOn && !bionicCollapsed && (
         <>
           <div className="reading-mode-slider-section">
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">Position</label>
-              {React.createElement(HTMLSelect, {
-                value: navChevronPosition,
-                onChange: (e) => {
-                  e.stopPropagation();
-                  const newPosition = e.target.value;
-                  extensionAPI.settings.set("navPosition-setting", newPosition);
-                  globalVarGetter("navChevronPosition", newPosition);
-                  updateAfterSettingsChange();
-                  forceUpdate({});
-                },
-                options: [
-                  { value: "top-left", label: "Top left" },
-                  { value: "top-right", label: "Top right" },
-                  { value: "bottom-right", label: "Bottom right" },
-                  { value: "bottom-left", label: "Bottom left" },
-                ],
-              })}
+              <label className="reading-mode-slider-label">
+                Fixation (% of word in bold)
+              </label>
+              <FixationSlider extensionAPI={extensionAPI} />
             </div>
 
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">Opacity</label>
-              {React.createElement(HTMLSelect, {
-                value:
-                  navChevronOpacity === 0
-                    ? "hover"
-                    : navChevronOpacity.toString(),
-                onChange: (e) => {
-                  e.stopPropagation();
-                  const newOpacity =
-                    e.target.value === "hover" ? 0 : parseFloat(e.target.value);
-                  extensionAPI.settings.set(
-                    "navOpacity-setting",
-                    e.target.value
-                  );
-                  globalVarGetter("navChevronOpacity", newOpacity);
-                  updateAfterSettingsChange();
-                  forceUpdate({});
-                },
-                options: [
-                  { value: "0.1", label: "0.1" },
-                  { value: "0.3", label: "0.3" },
-                  { value: "0.5", label: "0.5" },
-                  { value: "hover", label: "On hover" },
-                ],
-              })}
+              <label className="reading-mode-slider-label">
+                Saccade (apply every n words)
+              </label>
+              <SaccadeSlider extensionAPI={extensionAPI} />
             </div>
           </div>
         </>
