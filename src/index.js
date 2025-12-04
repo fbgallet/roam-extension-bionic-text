@@ -16,6 +16,7 @@ import {
   removeChevronsListener,
   removeReadOnly,
   updateNavigation,
+  updateChevronDisplaySettings,
 } from "./modes";
 import {
   connectObservers,
@@ -33,7 +34,7 @@ import {
   SampleTextForReadonly,
   SampleTextForBionic,
 } from "./components/SampleText";
-import { reduceToFixedValue } from "./utils";
+import { reduceToFixedValue } from "./utils/roamAPI";
 
 // Wrapped components for settings panel
 function wrappedFixationSlider(props) {
@@ -60,6 +61,9 @@ export let unfocusedOpacity;
 export let focusHideUI = true;
 export let focusHideBlocks = true;
 export let selectedFontFamily = "";
+export let popoverShowDelay = 300;
+export let navChevronPosition = "bottom-right";
+export let navChevronOpacity = 0.1;
 
 export let fixation, saccade;
 export let letterSpacing,
@@ -93,6 +97,15 @@ export const globalVarGetter = (varName, value) => {
     case "selectedFontFamily":
       selectedFontFamily = value;
       break;
+    case "popoverShowDelay":
+      popoverShowDelay = value;
+      break;
+    case "navChevronPosition":
+      navChevronPosition = value;
+      break;
+    case "navChevronOpacity":
+      navChevronOpacity = value;
+      break;
   }
 };
 
@@ -110,11 +123,7 @@ const AppToaster = Toaster.create({
   maxToasts: 1,
 });
 
-const toggleWaySet = new Set([
-  "With topbar button",
-  "On graph load + button",
-  "On graph load + command only",
-]);
+const toggleWaySet = new Set(["With topbar button", "On graph load"]);
 
 const toggleWayWithReadOnlySet = new Set([
   "On demand",
@@ -292,6 +301,53 @@ export default {
           },
         },
         {
+          id: "popoverDelay-setting",
+          name: "Popover show delay",
+          description:
+            "Delay (in milliseconds) before showing block preview popover when hovering chevrons:",
+          action: {
+            type: "select",
+            items: ["0", "100", "200", "300", "500", "800", "1000"],
+            onChange: (evt) => {
+              popoverShowDelay = parseInt(evt);
+            },
+          },
+        },
+        {
+          id: "navPosition-setting",
+          name: "Chevron position",
+          description:
+            "Position of navigation chevrons on the screen:",
+          action: {
+            type: "select",
+            items: ["Top left", "Top right", "Bottom right", "Bottom left"],
+            onChange: (evt) => {
+              const positionMap = {
+                "Top left": "top-left",
+                "Top right": "top-right",
+                "Bottom right": "bottom-right",
+                "Bottom left": "bottom-left",
+              };
+              navChevronPosition = positionMap[evt];
+              updateAfterSettingsChange();
+            },
+          },
+        },
+        {
+          id: "navOpacity-setting",
+          name: "Chevron opacity",
+          description:
+            "Opacity of navigation chevrons (select 'On hover' to show only when hovering):",
+          action: {
+            type: "select",
+            items: ["0.1", "0.3", "0.5", "On hover"],
+            onChange: (evt) => {
+              navChevronOpacity = evt === "On hover" ? 0 : parseFloat(evt);
+              updateAfterSettingsChange();
+            },
+          },
+        },
+        {
           id: "select-setting",
           name: "Select on click",
           description: "Select a block on click instead of editing it:",
@@ -342,9 +398,10 @@ export default {
           description: "Bionic reading mode (emphasize first part of words):",
           action: {
             type: "select",
-            items: [...toggleWaySet],
+            items: [...toggleWayWithReadOnlySet],
             onChange: (evt) => {
-              bionicMode.setToggleWay(evt);
+              bionicMode.setToggleWay(evt, true);
+              updateAfterSettingsChange();
             },
           },
         },
@@ -438,6 +495,30 @@ export default {
     }
     navMode.initialize();
 
+    if (extensionAPI.settings.get("popoverDelay-setting") === null) {
+      extensionAPI.settings.set("popoverDelay-setting", "300");
+      popoverShowDelay = 300;
+    } else {
+      popoverShowDelay = parseInt(
+        extensionAPI.settings.get("popoverDelay-setting")
+      );
+    }
+
+    if (extensionAPI.settings.get("navPosition-setting") === null) {
+      extensionAPI.settings.set("navPosition-setting", "bottom-right");
+      navChevronPosition = "bottom-right";
+    } else {
+      navChevronPosition = extensionAPI.settings.get("navPosition-setting");
+    }
+
+    if (extensionAPI.settings.get("navOpacity-setting") === null) {
+      extensionAPI.settings.set("navOpacity-setting", "0.1");
+      navChevronOpacity = 0.1;
+    } else {
+      const opacityValue = extensionAPI.settings.get("navOpacity-setting");
+      navChevronOpacity = opacityValue === "hover" ? 0 : parseFloat(opacityValue);
+    }
+
     if (extensionAPI.settings.get("select-setting") === null) {
       extensionAPI.settings.set("select-setting", "On demand");
       selectOnClickMode.setToggleWay("On demand", true);
@@ -501,12 +582,17 @@ export default {
     }
 
     if (extensionAPI.settings.get("bionic-setting") === null) {
-      extensionAPI.settings.set("button-setting", "On demand");
-      bionicMode.setToggleWay("On demand");
-    } else
-      bionicMode.setToggleWay(
+      extensionAPI.settings.set("bionic-setting", "On demand");
+      bionicMode.setToggleWay("On demand", true);
+    } else {
+      const migratedValue = migrateToReadOnlyToggleWay(
         normalizeToggleWayV4(extensionAPI.settings.get("bionic-setting"))
       );
+      bionicMode.setToggleWay(migratedValue, true);
+      if (migratedValue !== extensionAPI.settings.get("bionic-setting")) {
+        extensionAPI.settings.set("bionic-setting", migratedValue);
+      }
+    }
     bionicMode.initialize();
     if (extensionAPI.settings.get("fixation-setting") === null) {
       fixation = 50;
@@ -678,6 +764,9 @@ function updateAfterSettingsChange(mode = null, status = null) {
       if (focusMode.onReadOnly && !focusMode.isOn) {
         focusMode.isOn = true;
       }
+      if (bionicMode.onReadOnly && !bionicMode.isOn) {
+        bionicMode.isOn = true;
+      }
     } else {
       // Read Only was disabled, disable tied modes
       if (navMode.onReadOnly && navMode.isOn) {
@@ -688,6 +777,9 @@ function updateAfterSettingsChange(mode = null, status = null) {
       }
       if (focusMode.onReadOnly && focusMode.isOn) {
         focusMode.isOn = false;
+      }
+      if (bionicMode.onReadOnly && bionicMode.isOn) {
+        bionicMode.isOn = false;
       }
     }
   }
@@ -745,7 +837,13 @@ async function applyEnabledModes(refresh = false) {
     }
   }
   if (navMode.isOn) {
-    refresh ? await updateNavigation() : await initializeNavigation();
+    if (refresh) {
+      await updateNavigation();
+    } else {
+      await initializeNavigation();
+    }
+    // Update display settings (position and opacity) in both cases
+    updateChevronDisplaySettings();
   }
 }
 

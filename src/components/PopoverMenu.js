@@ -1,7 +1,28 @@
 import { useState, useEffect } from "react";
-import { Popover, Menu, MenuItem, MenuDivider, Switch, HTMLSelect } from "@blueprintjs/core";
-import { FixationSlider, SaccadeSlider, LetterSpacingSlider, LineHeightSlider, OpacitySlider } from "./Sliders";
-import { ROAM_APP_ELT, globalVarGetter, focusHideUI, focusHideBlocks, selectedFontFamily } from "../index";
+import {
+  Popover,
+  Menu,
+  MenuItem,
+  MenuDivider,
+  Switch,
+  HTMLSelect,
+} from "@blueprintjs/core";
+import {
+  FixationSlider,
+  SaccadeSlider,
+  LetterSpacingSlider,
+  LineHeightSlider,
+  OpacitySlider,
+} from "./Sliders";
+import {
+  ROAM_APP_ELT,
+  globalVarGetter,
+  focusHideUI,
+  focusHideBlocks,
+  selectedFontFamily,
+  navChevronPosition,
+  navChevronOpacity,
+} from "../index";
 import "./PopoverMenu.css";
 
 export function PopoverMenu({
@@ -25,7 +46,12 @@ export function PopoverMenu({
   }, []);
 
   // Check if any mode is on (for button state)
-  const isAnyModeOn = readOnlyMode.isOn || bionicMode.isOn || selectOnClickMode.isOn || focusMode.isOn || navMode.isOn;
+  const isAnyModeOn =
+    readOnlyMode.isOn ||
+    bionicMode.isOn ||
+    selectOnClickMode.isOn ||
+    focusMode.isOn ||
+    navMode.isOn;
 
   const handleToggleMode = (e, mode, modeName) => {
     e.stopPropagation(); // Prevent popover from closing
@@ -54,16 +80,12 @@ export function PopoverMenu({
             </div>
 
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">
-                Line Height
-              </label>
+              <label className="reading-mode-slider-label">Line Height</label>
               <LineHeightSlider extensionAPI={extensionAPI} />
             </div>
 
             <div className="reading-mode-slider-container">
-              <label className="reading-mode-slider-label">
-                Font Family
-              </label>
+              <label className="reading-mode-slider-label">Font Family</label>
               {React.createElement(HTMLSelect, {
                 value: selectedFontFamily,
                 onChange: (e) => {
@@ -90,7 +112,7 @@ export function PopoverMenu({
                   { value: "Georgia", label: "Georgia (serif)" },
                   { value: "Palatino", label: "Palatino (serif)" },
                   { value: "Lora", label: "Lora (serif)" },
-                ]
+                ],
               })}
             </div>
           </div>
@@ -127,16 +149,11 @@ export function PopoverMenu({
       )}
 
       <MenuItem
-        text="Navigation Controls"
-        icon={navMode.isOn ? "arrow-right" : "arrows-horizontal"}
-        onClick={(e) => handleToggleMode(e, navMode, "Navigation controls display")}
-        intent={navMode.isOn ? "primary" : "none"}
-      />
-
-      <MenuItem
         text="Select on Click"
         icon={selectOnClickMode.isOn ? "select" : "hand"}
-        onClick={(e) => handleToggleMode(e, selectOnClickMode, "Select on click mode")}
+        onClick={(e) =>
+          handleToggleMode(e, selectOnClickMode, "Select on click mode")
+        }
         intent={selectOnClickMode.isOn ? "primary" : "none"}
       />
 
@@ -157,7 +174,10 @@ export function PopoverMenu({
               <OpacitySlider extensionAPI={extensionAPI} />
             </div>
 
-            <div className="reading-mode-slider-container" style={{ paddingLeft: "20px" }}>
+            <div
+              className="reading-mode-slider-container"
+              style={{ paddingLeft: "20px" }}
+            >
               {React.createElement(Switch, {
                 checked: focusHideUI,
                 label: "Hide UI elements",
@@ -175,18 +195,24 @@ export function PopoverMenu({
                     }
                   }
                   forceUpdate({});
-                }
+                },
               })}
             </div>
 
-            <div className="reading-mode-slider-container" style={{ paddingLeft: "20px" }}>
+            <div
+              className="reading-mode-slider-container"
+              style={{ paddingLeft: "20px" }}
+            >
               {React.createElement(Switch, {
                 checked: focusHideBlocks,
                 label: "Hide unfocused blocks",
                 onChange: (e) => {
                   e.stopPropagation();
                   const newValue = e.target.checked;
-                  extensionAPI.settings.set("focusHideBlocks-setting", newValue);
+                  extensionAPI.settings.set(
+                    "focusHideBlocks-setting",
+                    newValue
+                  );
                   globalVarGetter("focusHideBlocks", newValue);
 
                   if (focusMode.isOn) {
@@ -197,11 +223,75 @@ export function PopoverMenu({
                     }
                   }
                   forceUpdate({});
-                }
+                },
               })}
             </div>
           </div>
           <MenuDivider />
+        </>
+      )}
+
+      <MenuItem
+        text="Navigation Controls"
+        icon={navMode.isOn ? "arrow-right" : "arrows-horizontal"}
+        onClick={(e) =>
+          handleToggleMode(e, navMode, "Navigation controls display")
+        }
+        intent={navMode.isOn ? "primary" : "none"}
+      />
+
+      {navMode.isOn && (
+        <>
+          <div className="reading-mode-slider-section">
+            <div className="reading-mode-slider-container">
+              <label className="reading-mode-slider-label">Position</label>
+              {React.createElement(HTMLSelect, {
+                value: navChevronPosition,
+                onChange: (e) => {
+                  e.stopPropagation();
+                  const newPosition = e.target.value;
+                  extensionAPI.settings.set("navPosition-setting", newPosition);
+                  globalVarGetter("navChevronPosition", newPosition);
+                  updateAfterSettingsChange();
+                  forceUpdate({});
+                },
+                options: [
+                  { value: "top-left", label: "Top left" },
+                  { value: "top-right", label: "Top right" },
+                  { value: "bottom-right", label: "Bottom right" },
+                  { value: "bottom-left", label: "Bottom left" },
+                ],
+              })}
+            </div>
+
+            <div className="reading-mode-slider-container">
+              <label className="reading-mode-slider-label">Opacity</label>
+              {React.createElement(HTMLSelect, {
+                value:
+                  navChevronOpacity === 0
+                    ? "hover"
+                    : navChevronOpacity.toString(),
+                onChange: (e) => {
+                  e.stopPropagation();
+                  const newOpacity =
+                    e.target.value === "hover" ? 0 : parseFloat(e.target.value);
+                  extensionAPI.settings.set(
+                    "navOpacity-setting",
+                    e.target.value
+                  );
+                  globalVarGetter("navChevronOpacity", newOpacity);
+                  updateAfterSettingsChange();
+                  forceUpdate({});
+                },
+                options: [
+                  { value: "0.1", label: "0.1" },
+                  { value: "0.3", label: "0.3" },
+                  { value: "0.5", label: "0.5" },
+                  { value: "hover", label: "On hover" },
+                ],
+              })}
+            </div>
+          </div>
         </>
       )}
     </Menu>
@@ -227,7 +317,11 @@ export function PopoverMenu({
       minimal={true}
     >
       <span
-        className={`bp3-icon-${readOnlyMode.isOn ? "lock" : "unlock"} bp3-button bp3-minimal bp3-small ${isAnyModeOn ? "bp3-intent-primary" : ""}`}
+        className={`bp3-icon-${
+          readOnlyMode.isOn ? "lock" : "unlock"
+        } bp3-button bp3-minimal bp3-small ${
+          isAnyModeOn ? "bp3-intent-primary" : ""
+        }`}
         id="reading-mode-icon"
         onClick={handleButtonClick}
       />

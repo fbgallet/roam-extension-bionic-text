@@ -6,12 +6,10 @@ import {
   isNewView,
   letterSpacing,
   lineHeight,
-  navMode,
   readOnlyMode,
   saccade,
   selectOnClickMode,
 } from ".";
-import { getFirstChildUid, getParentUID, getSiblingsAndOrder } from "./utils";
 
 export function applyModesToSelection(elt) {
   if (isNewView) {
@@ -283,235 +281,17 @@ export function removeBionicNodes(e = document) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Navigation mode
+// Navigation mode - Re-exported from navigation.js
 ////////////////////////////////////////////////////////////////////////////////
 
-var topViewBlockContext;
-const chevrons = document.createElement("div");
-const topChevron = document.createElement("span");
-const middleDiv = document.createElement("div");
-const leftChevron = document.createElement("span");
-const rightChevron = document.createElement("span");
-const bottomChevron = document.createElement("span");
-
-export async function initializeNavigation() {
-  try {
-    chevrons.classList.add("chevrons");
-    topChevron.title = "Previous sibling";
-    topChevron.classList.add("chevron", "top-chevron");
-    topChevron.innerText = "〈";
-    middleDiv.classList.add("middle");
-    leftChevron.title = "Parent";
-    leftChevron.classList.add("chevron", "left-chevron");
-    leftChevron.innerText = "〈";
-    rightChevron.title = "First child";
-    rightChevron.classList.add("chevron", "right-chevron");
-    rightChevron.innerText = "〉";
-    bottomChevron.title = "Next Sibling";
-    bottomChevron.classList.add("chevron", "bottom-chevron");
-    bottomChevron.innerText = "〉";
-
-    chevrons.appendChild(topChevron);
-    middleDiv.appendChild(leftChevron);
-    middleDiv.appendChild(rightChevron);
-    chevrons.appendChild(middleDiv);
-    chevrons.appendChild(bottomChevron);
-    document.querySelector(".roam-app").appendChild(chevrons);
-
-    addChevronsListener();
-    await updateNavigation();
-  } catch (error) {
-    console.error("Failed to initialize navigation:", error);
-  }
-}
-
-export async function updateNavigation() {
-  try {
-    topViewBlockContext = null;
-    topViewBlockContext = new BlockContext(
-      await window.roamAlphaAPI.ui.mainWindow.getOpenPageOrBlockUid()
-    );
-    // console.log(topViewBlockContext);
-    if (navMode.isOn) updateChevronsElts();
-  } catch (error) {
-    console.error("Failed to update navigation:", error);
-  }
-}
-
-export function updateChevronsElts() {
-  topViewBlockContext.hasPreviousSibling
-    ? topChevron.style.removeProperty("opacity")
-    : (topChevron.style.opacity = "0");
-  topViewBlockContext.firstChild
-    ? rightChevron.style.removeProperty("opacity")
-    : (rightChevron.style.opacity = "0");
-  topViewBlockContext.nextBlock
-    ? bottomChevron.style.removeProperty("opacity")
-    : (bottomChevron.style.opacity = "0");
-  let isAnimated = bottomChevron.classList.contains("bottom-chevron-anim");
-  if (topViewBlockContext.hasNextSibling) {
-    if (bottomChevron.classList.contains("double-chevron")) {
-      bottomChevron.title = "Next Sibling";
-      isAnimated
-        ? setTimeout(
-            () => bottomChevron.classList.remove("double-chevron"),
-            1000
-          )
-        : bottomChevron.classList.remove("double-chevron");
-    }
-  } else {
-    bottomChevron.title = "Next Parent sibling";
-    isAnimated
-      ? setTimeout(() => bottomChevron.classList.add("double-chevron"), 1000)
-      : bottomChevron.classList.add("double-chevron");
-  }
-  !topViewBlockContext.isPage
-    ? leftChevron.style.removeProperty("opacity")
-    : (leftChevron.style.opacity = "0");
-}
-
-function addChevronsListener() {
-  let directions = ["top", "right", "bottom", "left"];
-  directions.forEach((direction) => {
-    let chevron = document.querySelector(`.${direction}-chevron`);
-    chevron.addEventListener("click", async () => {
-      await navigateToBlock(direction);
-      animChevron(chevron, direction);
-    });
-  });
-}
-
-export function removeChevronsListener() {
-  let directions = ["top", "right", "bottom", "left"];
-  directions.forEach((direction) => {
-    let chevron = document.querySelector(`.${direction}-chevron`);
-    if (chevron)
-      chevron.removeEventListener("click", () => {
-        navigateToBlock(direction);
-        animChevron(chevron, direction);
-      });
-  });
-}
-
-function animChevron(chevron, direction) {
-  chevron.classList.add(`${direction}-chevron-anim`);
-  setTimeout(() => {
-    chevron.classList.remove(`${direction}-chevron-anim`);
-  }, 1000);
-}
-
-export function removeChevrons() {
-  let chevrons = document.querySelector(".chevrons");
-  if (chevrons) {
-    chevrons.remove();
-  }
-}
-
-export async function navigateToBlock(direction) {
-  try {
-    if (!navMode.isOn) await updateNavigation();
-    let targetUid;
-    switch (direction) {
-      case "top":
-        targetUid = topViewBlockContext.hasPreviousSibling
-          ? topViewBlockContext.getPreviousSibling()
-          : topViewBlockContext.getParent();
-        break;
-      case "bottom":
-        targetUid = topViewBlockContext.nextBlock;
-        break;
-      case "right":
-        targetUid = topViewBlockContext.firstChild;
-        break;
-      case "left":
-        targetUid = topViewBlockContext.getParent();
-        break;
-    }
-    if (targetUid) {
-      if (navMode.isOn)
-        animChevron(document.querySelector(`.${direction}-chevron`), direction);
-      window.roamAlphaAPI.ui.mainWindow.openBlock({
-        block: { uid: targetUid },
-      });
-    }
-  } catch (error) {
-    console.error("Failed to navigate to block:", error);
-  }
-}
-
-// BlockContext cache to improve performance
-const blockContextCache = new Map();
-const CACHE_MAX_SIZE = 50; // Limit cache size to prevent memory issues
-const CACHE_TTL = 5000; // Time to live: 5 seconds
-
-function getCachedBlockContext(uid) {
-  const cached = blockContextCache.get(uid);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.context;
-  }
-  return null;
-}
-
-function setCachedBlockContext(uid, context) {
-  // Clear old cache entries if size exceeds limit
-  if (blockContextCache.size >= CACHE_MAX_SIZE) {
-    const firstKey = blockContextCache.keys().next().value;
-    blockContextCache.delete(firstKey);
-  }
-  blockContextCache.set(uid, {
-    context: context,
-    timestamp: Date.now(),
-  });
-}
-
-export class BlockContext {
-  constructor(uid) {
-    // Check cache first for performance
-    const cached = getCachedBlockContext(uid);
-    if (cached) {
-      Object.assign(this, cached);
-      return;
-    }
-
-    this.uid = uid;
-    this.parent = getParentUID(uid);
-    this.firstChild = getFirstChildUid(uid);
-    let thisBlock = getSiblingsAndOrder(uid, this.parent);
-    this.siblings = thisBlock.siblings;
-    //console.log(this.siblings);
-    this.isPage = !this.siblings ? true : false;
-    this.order = thisBlock.order;
-    this.hasNextSibling =
-      !this.isPage && this.order + 1 < this.siblings.length ? true : false;
-    this.nextBlock = this.isPage ? null : this.getNextSibling();
-    this.hasPreviousSibling =
-      !this.isPage && this.order - 1 >= 0 ? true : false;
-
-    // Cache this instance
-    setCachedBlockContext(uid, this);
-  }
-  getNextSibling() {
-    if (this.hasNextSibling) return this.siblings[this.order + 1].uid;
-    return this.getNextParentBlockRecursively();
-  }
-  getPreviousSibling() {
-    if (this.hasPreviousSibling) return this.siblings[this.order - 1].uid;
-    return this.parent;
-  }
-  getNextParentBlockRecursively() {
-    let parentBlockContext = new BlockContext(this.parent);
-    if (parentBlockContext.isPage) return null;
-    if (parentBlockContext.hasNextSibling)
-      return parentBlockContext.getNextSibling();
-    else return parentBlockContext.getNextParentBlockRecursively();
-  }
-  getParent() {
-    if (!this.isPage) return this.parent;
-    return null;
-  }
-}
-
-// Export function to clear cache when needed
-export function clearBlockContextCache() {
-  blockContextCache.clear();
-}
+export {
+  initializeNavigation,
+  updateNavigation,
+  updateChevronsElts,
+  updateChevronDisplaySettings,
+  removeChevronsListener,
+  removeChevrons,
+  navigateToBlock,
+  BlockContext,
+  clearBlockContextCache,
+} from "./navigation";

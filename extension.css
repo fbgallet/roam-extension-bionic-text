@@ -20,7 +20,8 @@
 .roam-app[data-font-family="SF Pro"] .rm-title-display,
 .roam-app[data-font-family="SF Pro"] .roam-article textarea,
 .roam-app[data-font-family="SF Pro"] .roam-block-container {
-  font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif !important;
 }
 
 .roam-app[data-font-family="Noto Sans"] .roam-block,
@@ -306,7 +307,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-000 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-000 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-000
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-000 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-000 #right-sidebar:hover .rm-block-main {
   opacity: 0;
@@ -316,7 +320,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-001 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-001 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-001
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-001 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-001 #right-sidebar:hover .rm-block-main {
   opacity: 0.01;
@@ -326,7 +333,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-002 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-002 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-002
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-002 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-002 #right-sidebar:hover .rm-block-main {
   opacity: 0.02;
@@ -336,7 +346,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-003 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-003 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-003
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-003 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-003 #right-sidebar:hover .rm-block-main {
   opacity: 0.03;
@@ -346,7 +359,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-004 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-004 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-004
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-004 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-004 #right-sidebar:hover .rm-block-main {
   opacity: 0.04;
@@ -356,7 +372,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-005 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-005 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-005
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-005 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-005 #right-sidebar:hover .rm-block-main {
   opacity: 0.05;
@@ -366,7 +385,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-010 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-010 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-010
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-010 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-010 #right-sidebar:hover .rm-block-main {
   opacity: 0.1;
@@ -376,7 +398,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-015 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-015 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-015
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-015 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-015 #right-sidebar:hover .rm-block-main {
   opacity: 0.15;
@@ -386,7 +411,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-020 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-020 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-020
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-020 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-020 #right-sidebar:hover .rm-block-main {
   opacity: 0.2;
@@ -396,7 +424,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-025 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-025 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-025
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-025 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-025 #right-sidebar:hover .rm-block-main {
   opacity: 0.25;
@@ -406,7 +437,10 @@
   .roam-article:hover
   .rm-block-main:has(:not(.rm-block__input--active)),
 .read-focus.read-focus-hide-blocks.rf-030 .roam-article:hover .controls,
-.read-focus.read-focus-hide-blocks.rf-030 .roam-article:hover .rm-block-main:hover .rm-multibar,
+.read-focus.read-focus-hide-blocks.rf-030
+  .roam-article:hover
+  .rm-block-main:hover
+  .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-030 .roam-article:hover .rm-multibar,
 .read-focus.read-focus-hide-blocks.rf-030 #right-sidebar:hover .rm-block-main {
   opacity: 0.3;
@@ -426,16 +460,55 @@
   opacity: 1;
 }*/
 
+/* Make roam-main the positioning context for chevrons */
+.roam-main {
+  position: relative;
+}
+
 .chevrons {
-  position: fixed;
-  bottom: 0px;
-  right: 0px;
+  position: absolute;
   width: 130px;
   height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
+  z-index: 10;
+  --chevron-opacity: 0.1;
+}
+
+/* Position variations */
+.chevrons-bottom-right {
+  bottom: 0px;
+  right: 0px;
+}
+
+.chevrons-bottom-left {
+  bottom: 0px;
+  left: 0px;
+}
+
+.chevrons-top-right {
+  top: 0px;
+  right: 0px;
+}
+
+.chevrons-top-left {
+  top: 0px;
+  left: 0px;
+}
+
+/* Hover-only visibility */
+.chevrons-hover-only .chevron {
+  opacity: 0;
+}
+
+.chevrons-hover-only:hover .chevron {
+  opacity: 0.6;
+}
+
+.chevrons-hover-only .chevron:hover {
+  opacity: 1 !important;
 }
 
 .middle {
@@ -445,7 +518,7 @@
 }
 
 .chevron {
-  opacity: 0.1;
+  opacity: var(--chevron-opacity);
   cursor: default;
   font-size: 2em;
   font-weight: bold;
@@ -455,11 +528,11 @@
 }
 @media only screen and (max-width: 1024px) {
   .chevron {
-    opacity: 0.3;
+    opacity: calc(var(--chevron-opacity) * 3);
   }
 }
 .chevron:hover {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .top-chevron {
@@ -493,10 +566,24 @@
 .left-chevron:active {
   transform: translateX(0px);
 }
-
+.top-chevron {
+  top: 12px;
+}
+.top-chevron.double-chevron {
+  position: relative;
+  top: 12px;
+}
+.top-chevron.double-chevron::after {
+  position: relative;
+  left: -20px;
+  content: "〈";
+}
+.bottom-chevron {
+  top: 12px;
+}
 .bottom-chevron.double-chevron {
   position: relative;
-  top: 14px;
+  top: 10px;
 }
 .bottom-chevron.double-chevron::after {
   position: relative;
@@ -541,4 +628,105 @@
 
 .tag-input {
   background-color: var(--bc-settings__input, #182026);
+}
+
+/* Chevron popover styles */
+.chevron-popover {
+  width: 400px;
+  min-width: 400px;
+  max-width: 400px;
+  z-index: 1000;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.chevron-popover .bp3-popover-content {
+  padding: 6px 8px;
+  background-color: var(--popover-bg-color, #30404d);
+  color: var(--primary-text-color, #ffffff);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chevron-popover .bp3-popover-arrow {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+}
+
+.chevron-popover .bp3-popover-arrow svg {
+  width: 30px;
+  height: 30px;
+}
+
+.chevron-popover-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-color, #bfccd6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+.chevron-popover-block {
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.chevron-popover-block .roam-block-container {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.chevron-popover-block .roam-block {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chevron-popover-block .rm-block-main {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chevron-popover-block .rm-block__input,
+.chevron-popover-block textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Ensure block text uses Roam's default styling */
+.chevron-popover-block .roam-block {
+  color: inherit !important;
+}
+
+.chevron-popover-block .rm-block-text,
+.chevron-popover-block .rm-block__input,
+.chevron-popover-block .rm-block-main,
+.chevron-popover-block span,
+.chevron-popover-block div {
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+/* Override any focus mode styles that might affect visibility */
+.chevron-popover-block * {
+  opacity: 1 !important;
+}
+
+/* Style block references and tags */
+.chevron-popover-block .rm-page-ref,
+.chevron-popover-block .rm-page-ref-tag {
+  color: var(--page-link-color, #8ab4f8) !important;
+  opacity: 1 !important;
 }

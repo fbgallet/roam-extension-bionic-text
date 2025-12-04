@@ -4,11 +4,11 @@
 }
 
 .reading-mode-slider-section {
-  padding: 10px 15px;
+  padding: 6px 12px;
 }
 
-.reading-mode-slider-container {
-  margin-bottom: 15px;
+.reading-mode-slider-container:not(:last-of-type) {
+  margin-bottom: 10px;
 }
 
 .reading-mode-slider-label {
@@ -20,4 +20,8 @@
 
 .reading-mode-sample-container {
   margin-bottom: 10px;
+}
+
+.reading-mode-popover-menu .bp3-html-select select {
+  font-size: 12px;
 }

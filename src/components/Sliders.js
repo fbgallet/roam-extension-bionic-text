@@ -11,7 +11,7 @@ import {
   unfocusedOpacity,
 } from "../index";
 import { removeBionicNodes, processHtmlElement } from "../modes";
-import { reduceToFixedValue } from "../utils";
+import { reduceToFixedValue } from "../utils/roamAPI";
 
 export function FixationSlider({ extensionAPI }) {
   const [sliderValue, setSliderValue] = React.useState(
@@ -33,7 +33,7 @@ export function FixationSlider({ extensionAPI }) {
       if (bionicMode.isOn) {
         const elements = document.querySelectorAll(".rm-block-text");
         removeBionicNodes();
-        elements.forEach(element => {
+        elements.forEach((element) => {
           processHtmlElement(element);
         });
       }
@@ -61,7 +61,7 @@ export function SaccadeSlider({ extensionAPI }) {
       if (bionicMode.isOn) {
         const elements = document.querySelectorAll(".rm-block-text");
         removeBionicNodes();
-        elements.forEach(element => {
+        elements.forEach((element) => {
           processHtmlElement(element);
         });
       }
@@ -90,12 +90,16 @@ export function LetterSpacingSlider({ extensionAPI }) {
       if (readOnlyMode.isOn) {
         // Remove old class if it exists
         if (oldLetterSpacing !== 0) {
-          const oldClassName = `read-ls-${oldLetterSpacing.toString().replace(".", "")}`;
+          const oldClassName = `read-ls-${oldLetterSpacing
+            .toString()
+            .replace(".", "")}`;
           ROAM_APP_ELT.classList.remove(oldClassName);
         }
         // Add new class if value is not 0
         if (letterSpacing !== 0) {
-          const newClassName = `read-ls-${letterSpacing.toString().replace(".", "")}`;
+          const newClassName = `read-ls-${letterSpacing
+            .toString()
+            .replace(".", "")}`;
           ROAM_APP_ELT.classList.add(newClassName);
         }
       }
@@ -123,11 +127,15 @@ export function LineHeightSlider({ extensionAPI }) {
       // Optimize: pre-compute class names and single condition check
       if (readOnlyMode.isOn) {
         if (oldLineHeight !== 1.5) {
-          const oldClassName = `read-lh-${oldLineHeight.toString().replace(".", "")}`;
+          const oldClassName = `read-lh-${oldLineHeight
+            .toString()
+            .replace(".", "")}`;
           ROAM_APP_ELT.classList.remove(oldClassName);
         }
         if (lineHeight !== 1.5) {
-          const newClassName = `read-lh-${lineHeight.toString().replace(".", "")}`;
+          const newClassName = `read-lh-${lineHeight
+            .toString()
+            .replace(".", "")}`;
           ROAM_APP_ELT.classList.add(newClassName);
         }
       }

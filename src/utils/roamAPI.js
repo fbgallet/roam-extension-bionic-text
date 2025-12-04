@@ -1,3 +1,5 @@
+import { dnpUidRegex } from "./dnp";
+
 export function getFirstLevelOfChildrenOrdered(uid) {
   if (uid) {
     let result = window.roamAlphaAPI.pull(
@@ -56,6 +58,21 @@ export function getParentUID(uid) {
   else return null;
 }
 
+export const isCurrentPageDNP = async (pageUid) => {
+  return dnpUidRegex.test(pageUid);
+};
+
+export function isExisting(uid) {
+  let result = window.roamAlphaAPI.pull("[:block/uid]", [":block/uid", uid]);
+  if (result) return true;
+  return false;
+}
+
 export function reduceToFixedValue(value, min, fixedTo) {
   return value < min + 0.01 ? min : value.toFixed(fixedTo);
 }
+
+export const getYesterdayDate = (date = null) => {
+  if (!date) date = new Date();
+  return new Date(date.getTime() - 24 * 60 * 60 * 1000);
+};
