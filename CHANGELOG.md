@@ -1,6 +1,6 @@
 ## v.5 (December 2025)
 
-### New feature:
+### New features:
 
 - Block/Page preview when hovering over Navigation arrows
 - Navigation through Daily Notes
